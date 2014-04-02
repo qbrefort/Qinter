@@ -20,23 +20,22 @@ MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainW
 
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
     Sivia sivia(*R,Qinter,bfind,epsilon);
-    QString valueAsString = "Qinter = ";
-    valueAsString.append(QString::number(Qinter));
-    QMessageBox::information(this,"Info",valueAsString);
     // run SIVIA
     while(bfind==0){
         Qinter=Qinter-1;
-        QString valueAsString = "Qinter = ";
-        valueAsString.append(QString::number(Qinter));
-        QMessageBox::information(this,"Info",valueAsString);
+        ui->InterSpinBox->setValue(Qinter);
+
         Sivia sivia(*R,Qinter,bfind,epsilon);
     }
-
+QString valueAsString = "Robot localized with ";
+valueAsString.append(QString::number(Qinter));valueAsString.append("/5 inliers");
+QMessageBox::information(this,"Info",valueAsString);
 }
 
 void MainWindow::Init() {
     epsilon=ui->EpsilonSpinBox->value();
     Qinter=ui->InterSpinBox->value();
+
 }
 
 MainWindow::~MainWindow() {

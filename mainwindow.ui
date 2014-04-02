@@ -43,7 +43,7 @@
      <item>
       <widget class="QLabel" name="label_Epsilon_2">
        <property name="text">
-        <string>QIntersection</string>
+        <string>Inliers</string>
        </property>
       </widget>
      </item>
