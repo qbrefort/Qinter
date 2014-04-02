@@ -6,6 +6,7 @@
 
 double epsilon;
 double Qinter;
+int bfind=0;
 
 MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
@@ -18,9 +19,18 @@ MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainW
     double ymax=10;
 
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-
+    Sivia sivia(*R,Qinter,bfind,epsilon);
+    QString valueAsString = "Qinter = ";
+    valueAsString.append(QString::number(Qinter));
+    QMessageBox::information(this,"Info",valueAsString);
     // run SIVIA
-    Sivia sivia(*R,Qinter,epsilon);
+    while(bfind==0){
+        Qinter=Qinter-1;
+        QString valueAsString = "Qinter = ";
+        valueAsString.append(QString::number(Qinter));
+        QMessageBox::information(this,"Info",valueAsString);
+        Sivia sivia(*R,Qinter,bfind,epsilon);
+    }
 
 }
 
@@ -45,9 +55,8 @@ void MainWindow::on_ButtonStart_clicked()
     double ymax=10;
 
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-
     // run SIVIA
-    Sivia sivia(*R,Qinter,epsilon);
+    Sivia sivia(*R,Qinter,bfind,epsilon);
 }
 
 

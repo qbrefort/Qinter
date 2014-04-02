@@ -1,6 +1,6 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2011-07-01T09:24:59
+# Project created by Quentin 04/01/2014
 #
 #-------------------------------------------------
 
@@ -20,6 +20,7 @@ HEADERS += mainwindow.h \
 
 FORMS += mainwindow.ui
 
+# ADD YOUR PATH TO IBEX
 IBEXHOME = /home/quentin/Documents/Ibex/IBEX_INSTALL/INSTALL
 
 INCLUDEPATH += $$IBEXHOME/IBEX/include/ibex $$IBEXHOME/IBEX/include $$IBEXHOME/soplex-1.7.2/src -frounding-math -msse2 -mfpmath=sse

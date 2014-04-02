@@ -1,7 +1,7 @@
 #include "sivia.h"
 
 
-void Sivia::contract_and_draw(Ctc& c, IntervalVector& X, const QColor & pencolor, const QColor & brushcolor) {
+void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int& bfind, const QColor & pencolor, const QColor & brushcolor) {
     IntervalVector X0=X;       // get a copy
     try {
         c.contract(X);
@@ -10,6 +10,7 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X, const QColor & pencolor
         int n=X0.diff(X,rest); // calculate the set difference
         for (int i=0; i<n; i++) {     // display the boxes
             R.DrawBox(rest[i][0].lb(),rest[i][0].ub(), rest[i][1].lb(),rest[i][1].ub(),QPen(pencolor),QBrush(brushcolor));
+            bfind=1;
         }
         delete[] rest;
     } catch(EmptyBoxException&) {
@@ -18,8 +19,9 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X, const QColor & pencolor
 }
 
 
-Sivia::Sivia(repere& R,int Qinter, double epsilon) : R(R) {
-
+Sivia::Sivia(repere& R,int Qinter,int &bfind, double epsilon) : R(R) {
+    qDebug("Run SIVIA");
+    bfind=0;
     // Create the function we want to apply SIVIA on.
     Variable x,y;
     int x1,y1,x2,y2,x3,y3,x4,y4,x5,y5;
@@ -130,19 +132,19 @@ Sivia::Sivia(repere& R,int Qinter, double epsilon) : R(R) {
     while (!s.empty()) {
         IntervalVector box=s.top();
         s.pop();
-            contract_and_draw(inside,box,Qt::magenta,Qt::red);
-            if (box.is_empty()) { continue; }
+        contract_and_draw(inside,box,bfind,Qt::magenta,Qt::red);
+        if (box.is_empty()) { continue; }
 
-            contract_and_draw(outside,box,Qt::darkBlue,Qt::cyan);
-            if (box.is_empty()) { continue; }
+        contract_and_draw(outside,box,bfind,Qt::darkBlue,Qt::cyan);
+        if (box.is_empty()) { continue; }
 
-            if (box.max_diam()<epsilon) {
-                R.DrawBox(box[0].lb(),box[0].ub(),box[1].lb(),box[1].ub(),QPen(Qt::yellow),QBrush(Qt::NoBrush));
-            } else {
-                pair<IntervalVector,IntervalVector> boxes=lf.bisect(box);
-                s.push(boxes.first);
-                s.push(boxes.second);
-            }
+        if (box.max_diam()<epsilon) {
+            R.DrawBox(box[0].lb(),box[0].ub(),box[1].lb(),box[1].ub(),QPen(Qt::yellow),QBrush(Qt::NoBrush));
+        } else {
+            pair<IntervalVector,IntervalVector> boxes=lf.bisect(box);
+            s.push(boxes.first);
+            s.push(boxes.second);
+        }
     }
 
     double re=0.5;

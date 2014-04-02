@@ -50,7 +50,7 @@
      <item>
       <widget class="QSpinBox" name="InterSpinBox">
        <property name="value">
-        <number>1</number>
+        <number>5</number>
        </property>
       </widget>
      </item>
