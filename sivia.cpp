@@ -25,6 +25,10 @@ Sivia::Sivia(repere& R,int Qinter,int &bfind, double epsilon) : R(R) {
     // Create the function we want to apply SIVIA on.
     Variable x,y;
     int x1,y1,x2,y2,x3,y3,x4,y4,x5,y5;
+    double r1,r2,r3,r4,r5;
+    double err;
+    err = 0.5;
+    r1=9;r2=2;r3=6;r4=6;r5=9;
     y1=x1=4;x2=4;y2=-7;x3=7;y3=0;x4=y4=-2;x5=y5=6;
     Function f(x,y,sqr(x-x1)+sqr(y-y1));
     Function f2(x,y,sqr(x-x2)+sqr(y-y2));
@@ -32,31 +36,31 @@ Sivia::Sivia(repere& R,int Qinter,int &bfind, double epsilon) : R(R) {
     Function f4(x,y,sqr(x-x4)+sqr(y-y4));
     Function f5(x,y,sqr(x-x5)+sqr(y-y5));
 
-    NumConstraint c11(x,y,f(x,y)<=9.5*9.5);
-    NumConstraint c12(x,y,f(x,y)>=8.5*8.5);
-    NumConstraint c13(x,y,f(x,y)>9.5*9.5);
-    NumConstraint c14(x,y,f(x,y)<8.5*8.5);
+    NumConstraint c11(x,y,f(x,y)<=(r1+err)*(r1+err));
+    NumConstraint c12(x,y,f(x,y)>=(r1-err)*(r1-err));
+    NumConstraint c13(x,y,f(x,y)>(r1+err)*(r1+err));
+    NumConstraint c14(x,y,f(x,y)<(r1-err)*(r1-err));
 
 
-    NumConstraint c21(x,y,f2(x,y)<=2.5*2.5);
-    NumConstraint c22(x,y,f2(x,y)>=1.5*1.5);
-    NumConstraint c23(x,y,f2(x,y)>2.5*2.5);
-    NumConstraint c24(x,y,f2(x,y)<1.5*1.5);
+    NumConstraint c21(x,y,f2(x,y)<=(r2+err)*(r2+err));
+    NumConstraint c22(x,y,f2(x,y)>=(r2-err)*(r2-err));
+    NumConstraint c23(x,y,f2(x,y)>(r2+err)*(r2+err));
+    NumConstraint c24(x,y,f2(x,y)<(r2-err)*(r2-err));
 
-    NumConstraint c31(x,y,f3(x,y)<=6.5*6.5);
-    NumConstraint c32(x,y,f3(x,y)>=5.5*5.5);
-    NumConstraint c33(x,y,f3(x,y)>6.5*6.5);
-    NumConstraint c34(x,y,f3(x,y)<5.5*5.5);
+    NumConstraint c31(x,y,f3(x,y)<=(r3+err)*(r3+err));
+    NumConstraint c32(x,y,f3(x,y)>=(r3-err)*(r3-err));
+    NumConstraint c33(x,y,f3(x,y)>(r3+err)*(r3+err));
+    NumConstraint c34(x,y,f3(x,y)<(r3-err)*(r3-err));
 
-    NumConstraint c41(x,y,f4(x,y)<=6.5*6.5);
-    NumConstraint c42(x,y,f4(x,y)>=5.5*5.5);
-    NumConstraint c43(x,y,f4(x,y)>6.5*6.5);
-    NumConstraint c44(x,y,f4(x,y)<5.5*5.5);
+    NumConstraint c41(x,y,f4(x,y)<=(r4+err)*(r4+err));
+    NumConstraint c42(x,y,f4(x,y)>=(r4-err)*(r4-err));
+    NumConstraint c43(x,y,f4(x,y)>(r4+err)*(r4+err));
+    NumConstraint c44(x,y,f4(x,y)<(r4-err)*(r4-err));
 
-    NumConstraint c51(x,y,f5(x,y)<=9.5*9.5);
-    NumConstraint c52(x,y,f5(x,y)>=8.5*8.5);
-    NumConstraint c53(x,y,f5(x,y)>9.5*9.5);
-    NumConstraint c54(x,y,f5(x,y)<8.5*8.5);
+    NumConstraint c51(x,y,f5(x,y)<=(r5+err)*(r5+err));
+    NumConstraint c52(x,y,f5(x,y)>=(r5-err)*(r5-err));
+    NumConstraint c53(x,y,f5(x,y)>(r5+err)*(r5+err));
+    NumConstraint c54(x,y,f5(x,y)<(r5-err)*(r5-err));
 
 
     // Create contractors with respect to each
@@ -87,7 +91,7 @@ Sivia::Sivia(repere& R,int Qinter,int &bfind, double epsilon) : R(R) {
     CtcFwdBwd in52(c54);
 
     // Create a contractor that removes all the points
-    // that do not satisfy either f(x,y)<=2 or f(x,y)>=0.
+    // that do not satisfy either f(x,y)<=(r+epsilon)^2 or f(x,y)>=(r-epsilon)^2.
     // These points are "outside" of the solution set.
     CtcCompo outside1(out11,out12);
     CtcCompo outside2(out21,out22);
@@ -96,7 +100,7 @@ Sivia::Sivia(repere& R,int Qinter,int &bfind, double epsilon) : R(R) {
     CtcCompo outside5(out51,out52);
 
     // Create a contractor that removes all the points
-    // that do not satisfy both f(x,y)>2 or f(x,y)<0.
+    // that do not satisfy both f(x,y)>(r+epsilon)^2 or f(x,y)<(r-epsilon)^2.
     // These points are "inside" the solution set.
     CtcUnion inside1(in11,in12);
     CtcUnion inside2(in21,in22);
