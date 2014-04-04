@@ -19,15 +19,13 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int& bfind, const QColor
 }
 
 
-Sivia::Sivia(repere& R,int Qinter,int &bfind, double epsilon) : R(R) {
+Sivia::Sivia(repere& R,int Qinter,int &bfind,double err, double epsilon) : R(R) {
     qDebug("Run SIVIA");
     bfind=0;
     // Create the function we want to apply SIVIA on.
     Variable x,y;
     int x1,y1,x2,y2,x3,y3,x4,y4,x5,y5;
     double r1,r2,r3,r4,r5;
-    double err;
-    err = 0.5;
     r1=9;r2=2;r3=6;r4=6;r5=9;
     y1=x1=4;x2=4;y2=-7;x3=7;y3=0;x4=y4=-2;x5=y5=6;
     Function f(x,y,sqr(x-x1)+sqr(y-y1));
@@ -65,30 +63,24 @@ Sivia::Sivia(repere& R,int Qinter,int &bfind, double epsilon) : R(R) {
 
     // Create contractors with respect to each
     // of the previous constraints.
-    CtcFwdBwd out11(c11);
-    CtcFwdBwd out12(c12);
-    CtcFwdBwd in11(c13);
-    CtcFwdBwd in12(c14);
+    CtcFwdBwd out11(c11);CtcFwdBwd out12(c12);
+    CtcFwdBwd in11(c13); CtcFwdBwd in12(c14);
 
-    CtcFwdBwd out21(c21);
-    CtcFwdBwd out22(c22);
-    CtcFwdBwd in21(c23);
-    CtcFwdBwd in22(c24);
+    CtcFwdBwd out21(c21);CtcFwdBwd out22(c22);
+    CtcFwdBwd in21(c23);CtcFwdBwd in22(c24);
 
-    CtcFwdBwd out31(c31);
-    CtcFwdBwd out32(c32);
-    CtcFwdBwd in31(c33);
-    CtcFwdBwd in32(c34);
 
-    CtcFwdBwd out41(c41);
-    CtcFwdBwd out42(c42);
-    CtcFwdBwd in41(c43);
-    CtcFwdBwd in42(c44);
+    CtcFwdBwd out31(c31);CtcFwdBwd out32(c32);
+    CtcFwdBwd in31(c33);CtcFwdBwd in32(c34);
 
-    CtcFwdBwd out51(c51);
-    CtcFwdBwd out52(c52);
-    CtcFwdBwd in51(c53);
-    CtcFwdBwd in52(c54);
+
+    CtcFwdBwd out41(c41);CtcFwdBwd out42(c42);
+    CtcFwdBwd in41(c43);CtcFwdBwd in42(c44);
+
+
+    CtcFwdBwd out51(c51);CtcFwdBwd out52(c52);
+    CtcFwdBwd in51(c53);CtcFwdBwd in52(c54);
+
 
     // Create a contractor that removes all the points
     // that do not satisfy either f(x,y)<=(r+epsilon)^2 or f(x,y)>=(r-epsilon)^2.
@@ -115,9 +107,6 @@ Sivia::Sivia(repere& R,int Qinter,int &bfind, double epsilon) : R(R) {
     int q = 5 - Qinter + 1;
     CtcQInter inside(Ain,q);
     CtcQInter outside(Aout,Qinter);
-
-//    CtcQInter outside(outside1,outside3);
-//    CtcQInter inside(inside1,inside3);
 
 
     // Build the initial box.

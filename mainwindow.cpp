@@ -4,7 +4,10 @@
 #include "ibex.h"
 #include "sivia.h"
 
+#include <QElapsedTimer>
+
 double epsilon;
+double err=0.5;
 double Qinter;
 int bfind=0;
 
@@ -19,13 +22,13 @@ MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainW
     double ymax=10;
 
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,Qinter,bfind,epsilon);
+    Sivia sivia(*R,Qinter,bfind,err,epsilon);
     // run SIVIA
     while(bfind==0){
         Qinter=Qinter-1;
         ui->InterSpinBox->setValue(Qinter);
 
-        Sivia sivia(*R,Qinter,bfind,epsilon);
+        Sivia sivia(*R,Qinter,bfind,err,epsilon);
     }
 QString valueAsString = "Robot localized with ";
 valueAsString.append(QString::number(Qinter));valueAsString.append("/5 inliers");
@@ -44,7 +47,8 @@ MainWindow::~MainWindow() {
 
 void MainWindow::on_ButtonStart_clicked()
 {
-
+    QElapsedTimer timer;
+    timer.start();
     Init();
 
     // Build the frame
@@ -55,11 +59,13 @@ void MainWindow::on_ButtonStart_clicked()
 
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
     // run SIVIA
-    Sivia sivia(*R,Qinter,bfind,epsilon);
+    Sivia sivia(*R,Qinter,bfind,err,epsilon);
+    qDebug() << "This operation took" << timer.elapsed() << "milliseconds";
 }
 
-
-void MainWindow::on_InterSpinBox_valueChanged(int arg1)
+void MainWindow::on_ErrSpinBox_2_valueChanged(double arg1)
 {
-
+    err = arg1;
 }
+
+void MainWindow::on_InterSpinBox_valueChanged(int arg1){}
