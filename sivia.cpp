@@ -26,8 +26,8 @@ Sivia::Sivia(repere& R,int Qinter,int &bfind,double err, double epsilon) : R(R) 
     Variable x,y;
     int x1,y1,x2,y2,x3,y3,x4,y4,x5,y5;
     double r1,r2,r3,r4,r5;
-    r1=9;r2=2;r3=6;r4=6;r5=9;
-    y1=x1=4;x2=4;y2=-7;x3=7;y3=0;x4=y4=-2;x5=y5=6;
+    r1=9;r2=2;r3=6;r4=6;r5=9.5;
+    y1=x1=4;x2=4;y2=-7;x3=7;y3=0;x4=y4=-2;x5=-4;y5=2;
     Function f(x,y,sqr(x-x1)+sqr(y-y1));
     Function f2(x,y,sqr(x-x2)+sqr(y-y2));
     Function f3(x,y,sqr(x-x3)+sqr(y-y3));
@@ -147,7 +147,6 @@ Sivia::Sivia(repere& R,int Qinter,int &bfind,double err, double epsilon) : R(R) 
     R.DrawEllipse(x3,y3,re,QPen(Qt::black),QBrush(Qt::NoBrush));
     R.DrawEllipse(x4,y4,re,QPen(Qt::black),QBrush(Qt::NoBrush));
     R.DrawEllipse(x5,y5,re,QPen(Qt::black),QBrush(Qt::NoBrush));
-
 
     R.Save("paving");
 }

@@ -26,25 +26,33 @@ MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainW
         ui->InterSpinBox->setValue(Qinter);
         Sivia sivia(*R,Qinter,bfind,err,epsilon);
     }
-QString valueAsString = "Robot localized with ";
-valueAsString.append(QString::number(Qinter));valueAsString.append("/5 inliers");
-QMessageBox::information(this,"Info",valueAsString);
+//QString valueAsString = "Robot localized with ";
+//valueAsString.append(QString::number(Qinter));valueAsString.append("/5 inliers");
+//QMessageBox::information(this,"Info",valueAsString);
 
 while(bfind==1){
-    ui->ErrSpinBox_2->setValue(err);
-    Sivia sivia(*R,Qinter,bfind,err,epsilon);
     err=err-0.05;
+    Sivia sivia(*R,Qinter,bfind,err,epsilon);
+
 }
 err=err+0.05;
-QString mess2 = "Robot localized with ";
-mess2.append(QString::number(err));mess2.append(" error");
-QMessageBox::information(this,"Info",mess2);
+ui->ErrSpinBox_2->setValue(err);
+Sivia sivia2(*R,Qinter,bfind,err,epsilon);
+//QString mess2 = "Robot localized with ";
+//mess2.append(QString::number(err));mess2.append(" error");
+//QMessageBox::information(this,"Info",mess2);
 }
 
 void MainWindow::Init() {
     epsilon=ui->EpsilonSpinBox->value();
     Qinter=ui->InterSpinBox->value();
 
+}
+
+void MainWindow::repaint()
+{
+    repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
+    Sivia sivia(*R,Qinter,bfind,err,epsilon);
 }
 
 MainWindow::~MainWindow() {
@@ -78,6 +86,7 @@ void MainWindow::on_Zoomplus_clicked()
     xmax /= 2;
     ymin /= 2;
     ymax /= 2;
+    repaint();
 }
 
 void MainWindow::on_Zoomminus_clicked()
@@ -86,4 +95,23 @@ void MainWindow::on_Zoomminus_clicked()
     xmax *= 2;
     ymin *= 2;
     ymax *= 2;
+    repaint();
+}
+
+void MainWindow::on_ZoomZone_clicked()
+{
+    xmin = 3.0;
+    xmax = 3.5;
+    ymin = -6;
+    ymax = -4;
+    repaint();
+}
+
+void MainWindow::on_ZoomReset_clicked()
+{
+    xmin = -10;
+    xmax = 10;
+    ymin = -10;
+    ymax = 10;
+    repaint();
 }

@@ -36,7 +36,7 @@
       <x>10</x>
       <y>20</y>
       <width>160</width>
-      <height>263</height>
+      <height>329</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -127,6 +127,20 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="ZoomZone">
+       <property name="text">
+        <string>Zoom Zone</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="ZoomReset">
+       <property name="text">
+        <string>Zoom Reset</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="ButtonStart">
        <property name="text">
         <string>Start</string>
@@ -158,38 +172,5 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
- <connections>
-  <connection>
-   <sender>Zoomplus</sender>
-   <signal>clicked()</signal>
-   <receiver>ButtonStart</receiver>
-   <slot>click()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>105</x>
-     <y>236</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>102</x>
-     <y>302</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>Zoomminus</sender>
-   <signal>clicked()</signal>
-   <receiver>ButtonStart</receiver>
-   <slot>click()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>55</x>
-     <y>272</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>63</x>
-     <y>300</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>
