@@ -23,7 +23,7 @@ public:
      * Contract "box" with "c" and draw the trace (i.e., the difference between box and c(box))
      * with the colors "pencolor" and "brushcolor".
      */
-    void contract_and_draw(Ctc& c, IntervalVector& box,int &bfind,  const QColor & pencolor, const QColor & brushcolor);
+    void contract_and_draw(Ctc& c, IntervalVector& box,int isinside,int &bfind,  const QColor & pencolor, const QColor & brushcolor);
 
 private:
     repere& R;
