@@ -37,6 +37,9 @@ void MainWindow::on_ButtonFindSol_clicked()
     QElapsedTimer timer;
     timer.start();
     Init();
+    for (uint i=0;i<(sizeof(err)/sizeof(*err));i++){
+       err[i] = 0.00;
+    }
 
     // Build the frame
 
@@ -52,15 +55,15 @@ void MainWindow::on_ButtonFindSol_clicked()
     //valueAsString.append(QString::number(Qinter));valueAsString.append("/5 inliers");
     //QMessageBox::information(this,"Info",valueAsString);
 
-    while(bfind==1){
+    while(bfind==0){
         for (uint i=0;i<(sizeof(err)/sizeof(*err));i++){
-            err[i]=err[i]-0.05;
+            err[i]=err[i]+0.05;
             Sivia sivia(*R,Qinter,bfind,err,epsilon);
         }
 
     }
     //err=err+0.05;
-//    ui->ErrSpinBox_2->setValue(err[0]);
+    ui->ErrSpinBox_2->setValue(err[0]);
 //    Sivia sivia2(*R,Qinter,bfind,err,epsilon);
     //QString mess2 = "Robot localized with ";
     //mess2.append(QString::number(err));mess2.append(" error");
