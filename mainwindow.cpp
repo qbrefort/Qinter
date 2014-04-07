@@ -48,8 +48,8 @@ void MainWindow::on_ButtonFindSol_clicked()
     Sivia sivia(*R,Qinter,bfind,err,epsilon);
 
     uint i=0;
-    double startstep=floor(10*epsilon)/10-floor(10*epsilon)/20;
-    qDebug()<<"start: "<<startstep<<endl;
+    double startstep=0.05+floor(10*epsilon)/10-floor(10*epsilon)/20;
+    //qDebug()<<"start: "<<startstep<<endl;
     double step = 0.05;
     int nstep = 2;
     int stepctr=0;
@@ -73,23 +73,8 @@ void MainWindow::on_ButtonFindSol_clicked()
 
     }
      // "Backward"
-//    int stop=0;
-//    int startstepfind=0;
-//    while(stop!=1){
-//        for (uint j=0;j<(sizeof(err)/sizeof(*err));j++){
-//            err[j]=startstep;
-//            if(i==j) err[j]=startstep-step;
-//        }
-//        Sivia sivia(*R,Qinter,bfind,err,epsilon);
-
-//        i++;
-//        i = i % (sizeof(err)/sizeof(*err));
-//        qDebug()<<"err: "<<"is "<<err[0]<<";"<<err[1]<<";"<<err[2]<<";"<<err[3]<<";"<<err[4]<<endl;
-//        if(i==0) startstep=startstep-step;
-//        if (bfind==0) startstepfind+=1;
-//        if (startstepfind==2) stop=1;
-
-//    }
+     // The idea here is to developp a 'forward/backward' like method.
+     // Maybe we iterate with a high step in forward and lower the step to find a solution in backward.
 
     ui->ErrSpinBox_1->setValue(err[0]);
     ui->ErrSpinBox_2->setValue(err[1]);
