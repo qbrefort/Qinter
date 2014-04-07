@@ -8,19 +8,18 @@
 
 double xmin=-10,xmax=10,ymin=-10,ymax=10;
 double epsilon;
-double err=0.5;
+double err[5]={0.5,0.5,0.5,0.5,0.5};
 double Qinter;
 int bfind=0;
 
 MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
-    MainWindow::on_ButtonFindSol_clicked();
+    //MainWindow::on_ButtonFindSol_clicked();
 }
 
 void MainWindow::Init() {
     epsilon=ui->EpsilonSpinBox->value();
     Qinter=ui->InterSpinBox->value();
-    err = 0.5;
 }
 
 void MainWindow::repaint()
@@ -54,12 +53,15 @@ void MainWindow::on_ButtonFindSol_clicked()
     //QMessageBox::information(this,"Info",valueAsString);
 
     while(bfind==1){
-        err=err-0.05;
-        Sivia sivia(*R,Qinter,bfind,err,epsilon);
+        for (uint i=0;i<(sizeof(err)/sizeof(*err));i++){
+            err[i]=err[i]-0.05;
+            Sivia sivia(*R,Qinter,bfind,err,epsilon);
+        }
+
     }
-    err=err+0.05;
-    ui->ErrSpinBox_2->setValue(err);
-    Sivia sivia2(*R,Qinter,bfind,err,epsilon);
+    //err=err+0.05;
+//    ui->ErrSpinBox_2->setValue(err[0]);
+//    Sivia sivia2(*R,Qinter,bfind,err,epsilon);
     //QString mess2 = "Robot localized with ";
     //mess2.append(QString::number(err));mess2.append(" error");
     //QMessageBox::information(this,"Info",mess2);
@@ -72,7 +74,9 @@ void MainWindow::on_ButtonStart_clicked()
     QElapsedTimer timer;
     timer.start();
     Init();
-
+    for (uint i=0;i<(sizeof(err)/sizeof(*err));i++){
+       err[i] = ui->ErrSpinBox_2->value();
+    }
     // Build the frame
 
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
@@ -84,7 +88,7 @@ void MainWindow::on_ButtonStart_clicked()
 
 void MainWindow::on_ErrSpinBox_2_valueChanged(double arg1)
 {
-    err = arg1;
+    err[0] = arg1;
 }
 
 void MainWindow::on_InterSpinBox_valueChanged(int arg1){}

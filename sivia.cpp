@@ -19,7 +19,7 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int isinside,int& bfind,
 }
 
 
-Sivia::Sivia(repere& R,int Qinter,int &bfind,double err, double epsilon) : R(R) {
+Sivia::Sivia(repere& R,int Qinter,int &bfind,double *err, double epsilon) : R(R) {
     bfind=0;
     // Create the function we want to apply SIVIA on.
     Variable x,y;
@@ -33,31 +33,31 @@ Sivia::Sivia(repere& R,int Qinter,int &bfind,double err, double epsilon) : R(R) 
     Function f4(x,y,sqr(x-x4)+sqr(y-y4));
     Function f5(x,y,sqr(x-x5)+sqr(y-y5));
 
-    NumConstraint c11(x,y,f(x,y)<=(r1+err)*(r1+err));
-    NumConstraint c12(x,y,f(x,y)>=(r1-err)*(r1-err));
-    NumConstraint c13(x,y,f(x,y)>(r1+err)*(r1+err));
-    NumConstraint c14(x,y,f(x,y)<(r1-err)*(r1-err));
+    NumConstraint c11(x,y,f(x,y)<=(r1+err[0])*(r1+err[0]));
+    NumConstraint c12(x,y,f(x,y)>=(r1-err[0])*(r1-err[0]));
+    NumConstraint c13(x,y,f(x,y)>(r1+err[0])*(r1+err[0]));
+    NumConstraint c14(x,y,f(x,y)<(r1-err[0])*(r1-err[0]));
 
 
-    NumConstraint c21(x,y,f2(x,y)<=(r2+err)*(r2+err));
-    NumConstraint c22(x,y,f2(x,y)>=(r2-err)*(r2-err));
-    NumConstraint c23(x,y,f2(x,y)>(r2+err)*(r2+err));
-    NumConstraint c24(x,y,f2(x,y)<(r2-err)*(r2-err));
+    NumConstraint c21(x,y,f2(x,y)<=(r2+err[1])*(r2+err[1]));
+    NumConstraint c22(x,y,f2(x,y)>=(r2-err[1])*(r2-err[1]));
+    NumConstraint c23(x,y,f2(x,y)>(r2+err[1])*(r2+err[1]));
+    NumConstraint c24(x,y,f2(x,y)<(r2-err[1])*(r2-err[1]));
 
-    NumConstraint c31(x,y,f3(x,y)<=(r3+err)*(r3+err));
-    NumConstraint c32(x,y,f3(x,y)>=(r3-err)*(r3-err));
-    NumConstraint c33(x,y,f3(x,y)>(r3+err)*(r3+err));
-    NumConstraint c34(x,y,f3(x,y)<(r3-err)*(r3-err));
+    NumConstraint c31(x,y,f3(x,y)<=(r3+err[2])*(r3+err[2]));
+    NumConstraint c32(x,y,f3(x,y)>=(r3-err[2])*(r3-err[2]));
+    NumConstraint c33(x,y,f3(x,y)>(r3+err[2])*(r3+err[2]));
+    NumConstraint c34(x,y,f3(x,y)<(r3-err[2])*(r3-err[2]));
 
-    NumConstraint c41(x,y,f4(x,y)<=(r4+err)*(r4+err));
-    NumConstraint c42(x,y,f4(x,y)>=(r4-err)*(r4-err));
-    NumConstraint c43(x,y,f4(x,y)>(r4+err)*(r4+err));
-    NumConstraint c44(x,y,f4(x,y)<(r4-err)*(r4-err));
+    NumConstraint c41(x,y,f4(x,y)<=(r4+err[3])*(r4+err[3]));
+    NumConstraint c42(x,y,f4(x,y)>=(r4-err[3])*(r4-err[3]));
+    NumConstraint c43(x,y,f4(x,y)>(r4+err[3])*(r4+err[3]));
+    NumConstraint c44(x,y,f4(x,y)<(r4-err[3])*(r4-err[3]));
 
-    NumConstraint c51(x,y,f5(x,y)<=(r5+err)*(r5+err));
-    NumConstraint c52(x,y,f5(x,y)>=(r5-err)*(r5-err));
-    NumConstraint c53(x,y,f5(x,y)>(r5+err)*(r5+err));
-    NumConstraint c54(x,y,f5(x,y)<(r5-err)*(r5-err));
+    NumConstraint c51(x,y,f5(x,y)<=(r5+err[4])*(r5+err[4]));
+    NumConstraint c52(x,y,f5(x,y)>=(r5-err[4])*(r5-err[4]));
+    NumConstraint c53(x,y,f5(x,y)>(r5+err[4])*(r5+err[4]));
+    NumConstraint c54(x,y,f5(x,y)<(r5-err[4])*(r5-err[4]));
 
 
     // Create contractors with respect to each
