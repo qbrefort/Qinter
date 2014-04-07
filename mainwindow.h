@@ -37,6 +37,8 @@ private slots:
     void on_ErrSpinBox_3_valueChanged(double arg1);
     void on_ErrSpinBox_4_valueChanged(double arg1);
     void on_ErrSpinBox_5_valueChanged(double arg1);
+    void on_EpsilonSpinBox_valueChanged(double arg1);
+    void on_checkBox_toggled(bool checked);
 };
 
 
