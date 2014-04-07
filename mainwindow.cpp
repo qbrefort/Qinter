@@ -55,17 +55,54 @@ void MainWindow::on_ButtonFindSol_clicked()
     //valueAsString.append(QString::number(Qinter));valueAsString.append("/5 inliers");
     //QMessageBox::information(this,"Info",valueAsString);
     uint i=0;
+//    while(bfind==0){
+//        err[i]=err[i]+0.05;
+//        Sivia sivia(*R,Qinter,bfind,err,epsilon);
+//        qDebug()<<"err: "<<i<<"is "<<err[i]<<endl;
+//        i++;
+//        i = i % (sizeof(err)/sizeof(*err));
+
+//    }
+    double cpt=0;
+    double pas = 0.05;
+    int oneoftwo=0;
+    // "Forward"
     while(bfind==0){
-        qDebug()<<"err: "<<i<<"is "<<err[i]<<endl;
-        err[i]=err[i]+0.05;
+
+        for (uint j=0;j<(sizeof(err)/sizeof(*err));j++){
+            err[j]=cpt;
+            if(i==j) err[j]=cpt+(oneoftwo%2+1)*pas;
+
+        }
+        qDebug()<<"err 1: "<<"is "<<err[0]<<";"<<err[1]<<";"<<err[2]<<";"<<err[3]<<";"<<err[4]<<endl;
         Sivia sivia(*R,Qinter,bfind,err,epsilon);
-        i++;
-        i = i % (sizeof(err)/sizeof(*err));
-
-
+        if (oneoftwo==1){
+            i++;
+            i = i % (sizeof(err)/sizeof(*err));
+            if(i==0)    cpt=cpt+pas;
+        }
+        oneoftwo=(oneoftwo+1)%2;
 
     }
-    //err=err+0.05;
+     // "Backward"
+//    int stop=0;
+//    int cptfind=0;
+//    while(stop!=1){
+//        for (uint j=0;j<(sizeof(err)/sizeof(*err));j++){
+//            err[j]=cpt;
+//            if(i==j) err[j]=cpt-pas;
+//        }
+//        Sivia sivia(*R,Qinter,bfind,err,epsilon);
+
+//        i++;
+//        i = i % (sizeof(err)/sizeof(*err));
+//        qDebug()<<"err: "<<"is "<<err[0]<<";"<<err[1]<<";"<<err[2]<<";"<<err[3]<<";"<<err[4]<<endl;
+//        if(i==0) cpt=cpt-pas;
+//        if (bfind==0) cptfind+=1;
+//        if (cptfind==2) stop=1;
+
+//    }
+
     ui->ErrSpinBox_1->setValue(err[0]);
     ui->ErrSpinBox_2->setValue(err[1]);
     ui->ErrSpinBox_3->setValue(err[2]);
@@ -84,12 +121,6 @@ void MainWindow::on_ButtonStart_clicked()
     QElapsedTimer timer;
     timer.start();
     Init();
-
-//    err[0] = ui->ErrSpinBox_1->value();
-//    err[1] = ui->ErrSpinBox_2->value();
-//    err[2] = ui->ErrSpinBox_3->value();
-//    err[3] = ui->ErrSpinBox_4->value();
-//    err[4] = ui->ErrSpinBox_5->value();
 
     // Build the frame
 
@@ -142,8 +173,8 @@ void MainWindow::on_Zoomminus_clicked()
 
 void MainWindow::on_ZoomZone_clicked()
 {
-    xmin = 2.5;
-    xmax = 3.5;
+    xmin = 3.0;
+    xmax = 3.75;
     ymin = -6;
     ymax = -4;
     repaint();
