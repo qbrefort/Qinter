@@ -54,16 +54,23 @@ void MainWindow::on_ButtonFindSol_clicked()
     //QString valueAsString = "Robot localized with ";
     //valueAsString.append(QString::number(Qinter));valueAsString.append("/5 inliers");
     //QMessageBox::information(this,"Info",valueAsString);
-
+    uint i=0;
     while(bfind==0){
-        for (uint i=0;i<(sizeof(err)/sizeof(*err));i++){
-            err[i]=err[i]+0.05;
-            Sivia sivia(*R,Qinter,bfind,err,epsilon);
-        }
+        qDebug()<<"err: "<<i<<"is "<<err[i]<<endl;
+        err[i]=err[i]+0.05;
+        Sivia sivia(*R,Qinter,bfind,err,epsilon);
+        i++;
+        i = i % (sizeof(err)/sizeof(*err));
+
+
 
     }
     //err=err+0.05;
-    ui->ErrSpinBox_2->setValue(err[0]);
+    ui->ErrSpinBox_1->setValue(err[0]);
+    ui->ErrSpinBox_2->setValue(err[1]);
+    ui->ErrSpinBox_3->setValue(err[2]);
+    ui->ErrSpinBox_4->setValue(err[3]);
+    ui->ErrSpinBox_5->setValue(err[4]);
 //    Sivia sivia2(*R,Qinter,bfind,err,epsilon);
     //QString mess2 = "Robot localized with ";
     //mess2.append(QString::number(err));mess2.append(" error");
@@ -77,9 +84,13 @@ void MainWindow::on_ButtonStart_clicked()
     QElapsedTimer timer;
     timer.start();
     Init();
-    for (uint i=0;i<(sizeof(err)/sizeof(*err));i++){
-       err[i] = ui->ErrSpinBox_2->value();
-    }
+
+//    err[0] = ui->ErrSpinBox_1->value();
+//    err[1] = ui->ErrSpinBox_2->value();
+//    err[2] = ui->ErrSpinBox_3->value();
+//    err[3] = ui->ErrSpinBox_4->value();
+//    err[4] = ui->ErrSpinBox_5->value();
+
     // Build the frame
 
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
@@ -88,12 +99,27 @@ void MainWindow::on_ButtonStart_clicked()
     qDebug() << "This operation took" << timer.elapsed() << "milliseconds";
 }
 
-
-void MainWindow::on_ErrSpinBox_2_valueChanged(double arg1)
+void MainWindow::on_ErrSpinBox_1_valueChanged(double arg1)
 {
     err[0] = arg1;
 }
 
+void MainWindow::on_ErrSpinBox_2_valueChanged(double arg1)
+{
+    err[1] = arg1;
+}
+void MainWindow::on_ErrSpinBox_3_valueChanged(double arg1)
+{
+    err[2] = arg1;
+}
+void MainWindow::on_ErrSpinBox_4_valueChanged(double arg1)
+{
+    err[3] = arg1;
+}
+void MainWindow::on_ErrSpinBox_5_valueChanged(double arg1)
+{
+    err[4] = arg1;
+}
 void MainWindow::on_InterSpinBox_valueChanged(int arg1){}
 
 void MainWindow::on_Zoomplus_clicked()
@@ -131,4 +157,6 @@ void MainWindow::on_ZoomReset_clicked()
     ymax = 10;
     repaint();
 }
+
+
 
