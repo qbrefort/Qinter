@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>629</width>
-    <height>514</height>
+    <width>665</width>
+    <height>540</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <widget class="QGraphicsView" name="graphicsView">
     <property name="geometry">
      <rect>
-      <x>190</x>
+      <x>230</x>
       <y>20</y>
       <width>421</width>
       <height>421</height>
@@ -35,8 +35,8 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>160</width>
-      <height>329</height>
+      <width>196</width>
+      <height>362</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -143,7 +143,14 @@
      <item>
       <widget class="QPushButton" name="ButtonStart">
        <property name="text">
-        <string>Start</string>
+        <string>Run with parameters</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="ButtonFindSol">
+       <property name="text">
+        <string>Automatic Solution Finder</string>
        </property>
       </widget>
      </item>
@@ -155,7 +162,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>629</width>
+     <width>665</width>
      <height>25</height>
     </rect>
    </property>

@@ -20,13 +20,12 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int isinside,int& bfind,
 
 
 Sivia::Sivia(repere& R,int Qinter,int &bfind,double err, double epsilon) : R(R) {
-    qDebug("Run SIVIA");
     bfind=0;
     // Create the function we want to apply SIVIA on.
     Variable x,y;
     int x1,y1,x2,y2,x3,y3,x4,y4,x5,y5;
     double r1,r2,r3,r4,r5;
-    r1=9;r2=2;r3=6;r4=6;r5=9.5;
+    r1=9;r2=2;r3=6;r4=6;r5=10;
     y1=x1=4;x2=4;y2=-7;x3=7;y3=0;x4=y4=-2;x5=-4;y5=2;
     Function f(x,y,sqr(x-x1)+sqr(y-y1));
     Function f2(x,y,sqr(x-x2)+sqr(y-y2));
@@ -132,7 +131,7 @@ Sivia::Sivia(repere& R,int Qinter,int &bfind,double err, double epsilon) : R(R) 
         if (box.is_empty()) { continue; }
 
         if (box.max_diam()<epsilon) {
-            R.DrawBox(box[0].lb(),box[0].ub(),box[1].lb(),box[1].ub(),QPen(Qt::yellow),QBrush(Qt::NoBrush));
+            R.DrawBox(box[0].lb(),box[0].ub(),box[1].lb(),box[1].ub(),QPen(Qt::yellow),QBrush(Qt::white));
         } else {
             pair<IntervalVector,IntervalVector> boxes=lf.bisect(box);
             s.push(boxes.first);

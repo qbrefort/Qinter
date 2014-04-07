@@ -32,6 +32,7 @@ private slots:
     void on_ZoomZone_clicked();
     void on_ZoomReset_clicked();
     void repaint();
+    void on_ButtonFindSol_clicked();
 };
 
 
