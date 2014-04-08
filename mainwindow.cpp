@@ -48,34 +48,64 @@ void MainWindow::on_ButtonFindSol_clicked()
     Sivia sivia(*R,Qinter,bfind,err,epsilon);
 
     uint i=0;
-    double startstep=0.05+floor(10*epsilon)/10-floor(10*epsilon)/20;
+    //double startstep=0.05+floor(10*epsilon)/10-floor(10*epsilon)/20;
+    double startstep=1;
     //qDebug()<<"start: "<<startstep<<endl;
-    double step = 0.05;
+    double step = 0.5;
     int nstep = 2;
     int stepctr=0;
-    // "Forward"
-    while(bfind==0){
 
-        for (uint j=0;j<(sizeof(err)/sizeof(*err));j++){
-            err[j]=startstep;
-            if(i==j) err[j]=startstep+((stepctr+1))*step;
+    while(step>0.05){
+        int forw=0;
+        int back=0;
+        // "Forward"
+        qDebug()<<"Start Step: "<<startstep<<endl;
+        qDebug()<<"Step: "<<step<<endl;
+        // "Backward"
+        // The idea here is to developp a 'forward/backward' like method.
+        // Maybe we iterate with a high step in forward and lower the step to find a solution in backward.
+        while(bfind==1){
 
+            for (uint j=0;j<(sizeof(err)/sizeof(*err));j++){
+                err[j]=startstep;
+                if(i==j) err[j]=startstep-((stepctr+1))*step;
+            }
+
+            Sivia sivia(*R,Qinter,bfind,err,epsilon);
+            stepctr=(stepctr+1)%nstep;
+            if (stepctr==0){
+                i++;
+                i = i % (sizeof(err)/sizeof(*err));
+                if(i==0)    startstep=startstep-step;
+            }
+            back++;
         }
-        //qDebug()<<"err 1: "<<"is "<<err[0]<<";"<<err[1]<<";"<<err[2]<<";"<<err[3]<<";"<<err[4]<<endl;
-        Sivia sivia(*R,Qinter,bfind,err,epsilon);
-        stepctr=(stepctr+1)%nstep;
-        if (stepctr==0){
-            i++;
-            i = i % (sizeof(err)/sizeof(*err));
-            if(i==0)    startstep=startstep+step;
-        }
+        qDebug()<<"err back: "<<"is "<<err[0]<<";"<<err[1]<<";"<<err[2]<<";"<<err[3]<<";"<<err[4]<<endl;
 
+        while(bfind==0){
+
+            for (uint j=0;j<(sizeof(err)/sizeof(*err));j++){
+                err[j]=startstep;
+                if(i==j) err[j]=startstep+((stepctr+1))*step;
+            }
+
+            Sivia sivia(*R,Qinter,bfind,err,epsilon);
+            stepctr=(stepctr+1)%nstep;
+            if (stepctr==0){
+                i++;
+                i = i % (sizeof(err)/sizeof(*err));
+                if(i==0)    startstep=startstep+step;
+            }
+            forw++;
+        }
+        qDebug()<<"err for: "<<"is "<<err[0]<<";"<<err[1]<<";"<<err[2]<<";"<<err[3]<<";"<<err[4]<<endl;
+        if(back>forw)
+            startstep/=0.5;
+        else
+            startstep*=0.5;
+        step/=2;
 
     }
-     // "Backward"
-     // The idea here is to developp a 'forward/backward' like method.
-     // Maybe we iterate with a high step in forward and lower the step to find a solution in backward.
-
     ui->ErrSpinBox_1->setValue(err[0]);
     ui->ErrSpinBox_2->setValue(err[1]);
     ui->ErrSpinBox_3->setValue(err[2]);
