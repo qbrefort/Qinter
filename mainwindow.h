@@ -16,6 +16,8 @@ public:
     ~MainWindow();
 
     void Init();
+    void RobotTraj();
+    double sign(double a);
 
 private:
     Ui::MainWindow *ui;
@@ -39,6 +41,8 @@ private slots:
     void on_ErrSpinBox_5_valueChanged(double arg1);
     void on_EpsilonSpinBox_valueChanged(double arg1);
     void on_checkBox_toggled(bool checked);
+
+    void on_TSlider_valueChanged(int value);
 };
 
 

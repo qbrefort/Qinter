@@ -35,7 +35,7 @@
      <rect>
       <x>10</x>
       <y>0</y>
-      <width>341</width>
+      <width>331</width>
       <height>421</height>
      </rect>
     </property>
@@ -115,6 +115,30 @@
          </property>
          <property name="value">
           <double>0.100000000000000</double>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_8">
+       <item>
+        <widget class="QLabel" name="label_Epsilon_5">
+         <property name="text">
+          <string>Time</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSlider" name="TSlider">
+         <property name="maximum">
+          <number>300</number>
+         </property>
+         <property name="singleStep">
+          <number>1</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
          </property>
         </widget>
        </item>

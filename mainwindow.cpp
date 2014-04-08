@@ -5,13 +5,14 @@
 #include "sivia.h"
 
 #include <QElapsedTimer>
-
+double t;
 int timeinfo=1;
 double xmin=-10,xmax=10,ymin=-10,ymax=10;
 double epsilon;
 double err[5]={0.5,0.5,0.5,0.5,0.5};
 double Qinter;
 int bfind=0;
+double rpos[3]={3,-5,0};
 
 MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
@@ -23,10 +24,29 @@ void MainWindow::Init() {
     Qinter=ui->InterSpinBox->value();
 }
 
+double MainWindow::sign(double a){
+    if (a >= 0)
+        return 1;
+    else
+        return -1;
+}
+
+void MainWindow::RobotTraj(){
+    //double thetav= (atan(sqrt(7)-4*cos(t))+atan(sqrt(7)+4*cos(t)))-(atan(4-sqrt(7))+atan(4+sqrt(7)));
+    double thetav = (1-2*pow(sin(t),2))/cos(t);
+    double xv = 10*sin(t);
+    double yv = 10*cos(t)*sin(t);
+    rpos[0]= xv;
+    rpos[1]= yv;
+    rpos[2]= thetav;
+}
+
 void MainWindow::repaint()
 {
+    RobotTraj();
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,Qinter,bfind,err,epsilon);
+    Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon);
+    R->DrawRobot(rpos[0],rpos[1],rpos[2]);
 }
 
 MainWindow::~MainWindow() {
@@ -37,6 +57,7 @@ void MainWindow::on_ButtonFindSol_clicked()
 {
     QElapsedTimer timer;
     timer.start();
+    RobotTraj();
     Init();
     for (uint i=0;i<(sizeof(err)/sizeof(*err));i++){
        err[i] = 0.00;
@@ -45,7 +66,7 @@ void MainWindow::on_ButtonFindSol_clicked()
     // Build the frame
 
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,Qinter,bfind,err,epsilon);
+    Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon);
 
     uint i=0;
     //double startstep=0.05+floor(10*epsilon)/10-floor(10*epsilon)/20;
@@ -71,7 +92,7 @@ void MainWindow::on_ButtonFindSol_clicked()
                 if(i==j) err[j]=startstep-((stepctr+1))*step;
             }
 
-            Sivia sivia(*R,Qinter,bfind,err,epsilon);
+            Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon);
             stepctr=(stepctr+1)%nstep;
             if (stepctr==0){
                 i++;
@@ -89,7 +110,7 @@ void MainWindow::on_ButtonFindSol_clicked()
                 if(i==j) err[j]=startstep+((stepctr+1))*step;
             }
 
-            Sivia sivia(*R,Qinter,bfind,err,epsilon);
+            Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon);
             stepctr=(stepctr+1)%nstep;
             if (stepctr==0){
                 i++;
@@ -112,6 +133,8 @@ void MainWindow::on_ButtonFindSol_clicked()
     ui->ErrSpinBox_4->setValue(err[3]);
     ui->ErrSpinBox_5->setValue(err[4]);
 
+    R->DrawRobot(rpos[0],rpos[1],rpos[2]);
+
     if (timeinfo){
         QString mess = "Execution time : ";
         mess.append(QString::number(timer.elapsed()));mess.append(" ms");
@@ -122,6 +145,7 @@ void MainWindow::on_ButtonFindSol_clicked()
 
 void MainWindow::on_ButtonStart_clicked()
 {
+    RobotTraj();
     QElapsedTimer timer;
     timer.start();
     Init();
@@ -130,7 +154,8 @@ void MainWindow::on_ButtonStart_clicked()
 
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
     // run SIVIA
-    Sivia sivia(*R,Qinter,bfind,err,epsilon);
+    Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon);
+    R->DrawRobot(rpos[0],rpos[1],rpos[2]);
     if (timeinfo){
         QString mess = "Execution time : ";
         mess.append(QString::number(timer.elapsed()));mess.append(" ms");
@@ -184,10 +209,10 @@ void MainWindow::on_Zoomminus_clicked()
 
 void MainWindow::on_ZoomZone_clicked()
 {
-    xmin = 3.0;
-    xmax = 3.75;
-    ymin = -6;
-    ymax = -4;
+    xmin = rpos[0]-1;
+    xmax = rpos[0]+1;
+    ymin = rpos[1]-1;
+    ymax = rpos[1]+1;
     repaint();
 }
 
@@ -211,4 +236,9 @@ void MainWindow::on_checkBox_toggled(bool checked)
 {
     if(checked) timeinfo=1;
     else timeinfo=0;
+}
+
+void MainWindow::on_TSlider_valueChanged(int value)
+{
+    t=double(value)/100;
 }

@@ -1,5 +1,5 @@
 #include "sivia.h"
-
+#include <math.h>
 
 void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int isinside,int& bfind, const QColor & pencolor, const QColor & brushcolor) {
     IntervalVector X0=X;       // get a copy
@@ -19,14 +19,20 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int isinside,int& bfind,
 }
 
 
-Sivia::Sivia(repere& R,int Qinter,int &bfind,double *err, double epsilon) : R(R) {
+Sivia::Sivia(repere& R,double *rpos,int Qinter,int &bfind,double *err, double epsilon) : R(R) {
     bfind=0;
     // Create the function we want to apply SIVIA on.
     Variable x,y;
-    int x1,y1,x2,y2,x3,y3,x4,y4,x5,y5;
+    double x1,y1,x2,y2,x3,y3,x4,y4,x5,y5;
     double r1,r2,r3,r4,r5;
-    r1=9;r2=2;r3=6;r4=6;r5=10;
+    //r1=9.0;r2=2.0;r3=6.0;r4=6.0;r5=10.0;
     y1=x1=4;x2=4;y2=-7;x3=7;y3=0;x4=y4=-2;x5=-4;y5=2;
+    double xr=rpos[0],yr=rpos[1];
+    r1=sqrt(pow((xr-x1),2)+pow((yr-y1),2));
+    r2=sqrt(pow((xr-x2),2)+pow((yr-y2),2));
+    r3=sqrt(pow((xr-x3),2)+pow((yr-y3),2));
+    r4=sqrt(pow((xr-x4),2)+pow((yr-y4),2));
+    r5=sqrt(pow((xr-x5),2)+pow((yr-y5),2));
     Function f(x,y,sqr(x-x1)+sqr(y-y1));
     Function f2(x,y,sqr(x-x2)+sqr(y-y2));
     Function f3(x,y,sqr(x-x3)+sqr(y-y3));
