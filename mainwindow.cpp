@@ -6,9 +6,10 @@
 
 #include <QElapsedTimer>
 double t;
+double traj;
 int timeinfo=1;
 double xmin=-10,xmax=10,ymin=-10,ymax=10;
-double epsilon;
+double epsilon,erroutlier;
 double err[5]={0.5,0.5,0.5,0.5,0.5};
 double Qinter;
 int bfind=0;
@@ -31,21 +32,35 @@ double MainWindow::sign(double a){
         return -1;
 }
 
-void MainWindow::RobotTraj(){
+void MainWindow::RobotTraj(int traj){
     //double thetav= (atan(sqrt(7)-4*cos(t))+atan(sqrt(7)+4*cos(t)))-(atan(4-sqrt(7))+atan(4+sqrt(7)));
-    double thetav = (1-2*pow(sin(t),2))/cos(t);
-    double xv = 10*sin(t);
-    double yv = 10*cos(t)*sin(t);
-    rpos[0]= xv;
-    rpos[1]= yv;
-    rpos[2]= thetav;
+    if(traj=0){
+        double thetav;
+        if (cos(t)!=0)
+            thetav = (1-2*pow(sin(t),2))/cos(t);
+        else
+            thetav = 2*atan(1);
+        double xv = 9*sin(t);
+        double yv = 9*cos(t)*sin(t);
+        rpos[0]= xv;
+        rpos[1]= yv;
+        rpos[2]= thetav;
+    }
+    if(traj=1){
+        double thetav = -tan(t);
+        double xv = 9*sin(t);
+        double yv = 9*cos(t);
+        rpos[0]= xv;
+        rpos[1]= yv;
+        rpos[2]= thetav;
+    }
 }
 
 void MainWindow::repaint()
 {
-    RobotTraj();
+    RobotTraj(traj);
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon);
+    Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon,erroutlier);
     R->DrawRobot(rpos[0],rpos[1],rpos[2]);
 }
 
@@ -57,7 +72,7 @@ void MainWindow::on_ButtonFindSol_clicked()
 {
     QElapsedTimer timer;
     timer.start();
-    RobotTraj();
+    RobotTraj(traj);
     Init();
     for (uint i=0;i<(sizeof(err)/sizeof(*err));i++){
        err[i] = 0.00;
@@ -66,7 +81,7 @@ void MainWindow::on_ButtonFindSol_clicked()
     // Build the frame
 
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon);
+    Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon,erroutlier);
 
     uint i=0;
     //double startstep=0.05+floor(10*epsilon)/10-floor(10*epsilon)/20;
@@ -80,8 +95,8 @@ void MainWindow::on_ButtonFindSol_clicked()
         int forw=0;
         int back=0;
         // "Forward"
-        qDebug()<<"Start Step: "<<startstep<<endl;
-        qDebug()<<"Step: "<<step<<endl;
+//        qDebug()<<"Start Step: "<<startstep<<endl;
+//        qDebug()<<"Step: "<<step<<endl;
         // "Backward"
         // The idea here is to developp a 'forward/backward' like method.
         // Maybe we iterate with a high step in forward and lower the step to find a solution in backward.
@@ -92,7 +107,7 @@ void MainWindow::on_ButtonFindSol_clicked()
                 if(i==j) err[j]=startstep-((stepctr+1))*step;
             }
 
-            Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon);
+            Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon,erroutlier);
             stepctr=(stepctr+1)%nstep;
             if (stepctr==0){
                 i++;
@@ -101,7 +116,7 @@ void MainWindow::on_ButtonFindSol_clicked()
             }
             back++;
         }
-        qDebug()<<"err back: "<<"is "<<err[0]<<";"<<err[1]<<";"<<err[2]<<";"<<err[3]<<";"<<err[4]<<endl;
+       // qDebug()<<"err back: "<<"is "<<err[0]<<";"<<err[1]<<";"<<err[2]<<";"<<err[3]<<";"<<err[4]<<endl;
 
         while(bfind==0){
 
@@ -110,7 +125,7 @@ void MainWindow::on_ButtonFindSol_clicked()
                 if(i==j) err[j]=startstep+((stepctr+1))*step;
             }
 
-            Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon);
+            Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon,erroutlier);
             stepctr=(stepctr+1)%nstep;
             if (stepctr==0){
                 i++;
@@ -119,7 +134,7 @@ void MainWindow::on_ButtonFindSol_clicked()
             }
             forw++;
         }
-        qDebug()<<"err for: "<<"is "<<err[0]<<";"<<err[1]<<";"<<err[2]<<";"<<err[3]<<";"<<err[4]<<endl;
+        //qDebug()<<"err for: "<<"is "<<err[0]<<";"<<err[1]<<";"<<err[2]<<";"<<err[3]<<";"<<err[4]<<endl;
         if(back>forw)
             startstep/=0.5;
         else
@@ -145,7 +160,7 @@ void MainWindow::on_ButtonFindSol_clicked()
 
 void MainWindow::on_ButtonStart_clicked()
 {
-    RobotTraj();
+    RobotTraj(traj);
     QElapsedTimer timer;
     timer.start();
     Init();
@@ -154,7 +169,7 @@ void MainWindow::on_ButtonStart_clicked()
 
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
     // run SIVIA
-    Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon);
+    Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon,erroutlier);
     R->DrawRobot(rpos[0],rpos[1],rpos[2]);
     if (timeinfo){
         QString mess = "Execution time : ";
@@ -242,3 +257,39 @@ void MainWindow::on_TSlider_valueChanged(int value)
 {
     t=double(value)/100;
 }
+
+void MainWindow::on_OutlierSpinBox_valueChanged(double arg1)
+{
+    erroutlier = arg1;
+}
+
+void MainWindow::on_Tplot_clicked()
+{
+    traj=0;
+    Simu();
+}
+void MainWindow::on_Tplot_2_clicked()
+{
+    traj=1;
+    Simu();
+}
+void MainWindow::delay()
+{
+    QTime dieTime= QTime::currentTime().addMSecs(10);
+    while( QTime::currentTime() < dieTime )
+    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+}
+void MainWindow::Simu(){
+    ui->checkBox->setChecked(false);
+    for(double i=0;i<2*314;i=i+20){
+        t=i/100;
+        //ui->OutlierSpinBox->setValue(t);
+        on_ButtonFindSol_clicked();
+        delay();
+    }
+    QString messend = "End of simulation";
+    QMessageBox::information(this,"Info",messend);
+
+}
+
+

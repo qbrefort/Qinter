@@ -19,7 +19,7 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int isinside,int& bfind,
 }
 
 
-Sivia::Sivia(repere& R,double *rpos,int Qinter,int &bfind,double *err, double epsilon) : R(R) {
+Sivia::Sivia(repere& R,double *rpos,int Qinter,int &bfind,double *err, double epsilon, double erroutlier) : R(R) {
     bfind=0;
     // Create the function we want to apply SIVIA on.
     Variable x,y;
@@ -32,7 +32,7 @@ Sivia::Sivia(repere& R,double *rpos,int Qinter,int &bfind,double *err, double ep
     r2=sqrt(pow((xr-x2),2)+pow((yr-y2),2));
     r3=sqrt(pow((xr-x3),2)+pow((yr-y3),2));
     r4=sqrt(pow((xr-x4),2)+pow((yr-y4),2));
-    r5=sqrt(pow((xr-x5),2)+pow((yr-y5),2));
+    r5=sqrt(pow((xr-x5),2)+pow((yr-y5),2))+erroutlier;
     Function f(x,y,sqr(x-x1)+sqr(y-y1));
     Function f2(x,y,sqr(x-x2)+sqr(y-y2));
     Function f3(x,y,sqr(x-x3)+sqr(y-y3));

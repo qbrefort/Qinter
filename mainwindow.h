@@ -16,7 +16,8 @@ public:
     ~MainWindow();
 
     void Init();
-    void RobotTraj();
+    void RobotTraj(int traj);
+    void Simu();
     double sign(double a);
 
 private:
@@ -43,6 +44,10 @@ private slots:
     void on_checkBox_toggled(bool checked);
 
     void on_TSlider_valueChanged(int value);
+    void on_OutlierSpinBox_valueChanged(double arg1);
+    void on_Tplot_clicked();
+    void delay();
+    void on_Tplot_2_clicked();
 };
 
 
