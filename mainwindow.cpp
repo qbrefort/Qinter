@@ -5,10 +5,11 @@
 #include "sivia.h"
 
 #include <QElapsedTimer>
+vector<double> u,xv,yv,thetav;
 double t;
 double traj;
 int timeinfo=1;
-double xmin=-10,xmax=10,ymin=-10,ymax=10;
+double xmin=-25,xmax=25,ymin=-25,ymax=25;
 double epsilon,erroutlier;
 double err[5]={0.5,0.5,0.5,0.5,0.5};
 double Qinter;
@@ -17,6 +18,7 @@ double rpos[3]={3,-5,0};
 
 MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
+    GenTraj();
     //MainWindow::on_ButtonFindSol_clicked();
 }
 
@@ -31,22 +33,32 @@ double MainWindow::sign(double a){
     else
         return -1;
 }
+void MainWindow::GenTraj(){
+    int nb_step=6500;
+    xv.resize(nb_step); yv.resize(nb_step); thetav.resize(nb_step); u.resize(nb_step);
+    xv[0] = 0; yv[0] = 0; thetav[0]=0;
+    double dt=0.02;
+    double w=0.05;
+    double tt=0;
+    for(uint i= 1; i < nb_step; i++){
+        tt = tt+dt;
+        u[i-1]= 0.1*sign(sin(w*tt));
+        yv[i] = yv[i-1] + dt*sin(thetav[i-1]);
+        xv[i] = xv[i-1] + dt*cos(thetav[i-1]);
+        thetav[i] = thetav[i-1] + dt*(u[i-1]);
+    }
+}
 
 void MainWindow::RobotTraj(int traj){
     //double thetav= (atan(sqrt(7)-4*cos(t))+atan(sqrt(7)+4*cos(t)))-(atan(4-sqrt(7))+atan(4+sqrt(7)));
-    if(traj=0){
-        double thetav;
-        if (cos(t)!=0)
-            thetav = (1-2*pow(sin(t),2))/cos(t);
-        else
-            thetav = 2*atan(1);
-        double xv = 9*sin(t);
-        double yv = 9*cos(t)*sin(t);
-        rpos[0]= xv;
-        rpos[1]= yv;
-        rpos[2]= thetav;
+    // 8 cruve
+    if(traj==0){
+        rpos[0]=xv[t];
+        rpos[1]=yv[t];
+        rpos[2]=thetav[t];
     }
-    if(traj=1){
+    // Circle
+    if(traj==1){
         double thetav = -tan(t);
         double xv = 9*sin(t);
         double yv = 9*cos(t);
@@ -54,6 +66,19 @@ void MainWindow::RobotTraj(int traj){
         rpos[1]= yv;
         rpos[2]= thetav;
     }
+}
+void MainWindow::Simu(){
+    ui->checkBox->setChecked(false);
+
+    for(double i=0;i<6500;i=i+200){
+        t=i;//100;
+        //ui->OutlierSpinBox->setValue(t);
+        on_ButtonFindSol_clicked();
+        delay();
+    }
+    QString messend = "End of simulation";
+    QMessageBox::information(this,"Info",messend);
+
 }
 
 void MainWindow::repaint()
@@ -82,6 +107,7 @@ void MainWindow::on_ButtonFindSol_clicked()
 
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
     Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon,erroutlier);
+
 
     uint i=0;
     //double startstep=0.05+floor(10*epsilon)/10-floor(10*epsilon)/20;
@@ -147,6 +173,9 @@ void MainWindow::on_ButtonFindSol_clicked()
     ui->ErrSpinBox_3->setValue(err[2]);
     ui->ErrSpinBox_4->setValue(err[3]);
     ui->ErrSpinBox_5->setValue(err[4]);
+    for(double i=0;i<6500-111;i=i+10){
+        R->DrawLine(xv[i],yv[i],xv[i+10],yv[i+10],QPen(Qt::red));
+    }
 
     R->DrawRobot(rpos[0],rpos[1],rpos[2]);
 
@@ -268,28 +297,12 @@ void MainWindow::on_Tplot_clicked()
     traj=0;
     Simu();
 }
-void MainWindow::on_Tplot_2_clicked()
-{
-    traj=1;
-    Simu();
-}
 void MainWindow::delay()
 {
     QTime dieTime= QTime::currentTime().addMSecs(10);
     while( QTime::currentTime() < dieTime )
     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 }
-void MainWindow::Simu(){
-    ui->checkBox->setChecked(false);
-    for(double i=0;i<2*314;i=i+20){
-        t=i/100;
-        //ui->OutlierSpinBox->setValue(t);
-        on_ButtonFindSol_clicked();
-        delay();
-    }
-    QString messend = "End of simulation";
-    QMessageBox::information(this,"Info",messend);
 
-}
 
 

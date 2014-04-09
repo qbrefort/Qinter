@@ -16,6 +16,7 @@ public:
     ~MainWindow();
 
     void Init();
+    void GenTraj();
     void RobotTraj(int traj);
     void Simu();
     double sign(double a);
@@ -47,7 +48,6 @@ private slots:
     void on_OutlierSpinBox_valueChanged(double arg1);
     void on_Tplot_clicked();
     void delay();
-    void on_Tplot_2_clicked();
 };
 
 

@@ -162,10 +162,10 @@
        <item>
         <widget class="QSlider" name="TSlider">
          <property name="maximum">
-          <number>300</number>
+          <number>6500</number>
          </property>
          <property name="singleStep">
-          <number>1</number>
+          <number>100</number>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -191,13 +191,6 @@
         <widget class="QPushButton" name="Tplot">
          <property name="text">
           <string>GO! 8 curve</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="Tplot_2">
-         <property name="text">
-          <string>GO! circle</string>
          </property>
         </widget>
        </item>
