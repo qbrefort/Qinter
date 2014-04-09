@@ -154,4 +154,5 @@ Sivia::Sivia(repere& R,double *rpos,int Qinter,int &bfind,double *err, double ep
     R.DrawEllipse(x5,y5,re,QPen(Qt::black),QBrush(Qt::NoBrush));
 
     R.Save("paving");
+
 }
