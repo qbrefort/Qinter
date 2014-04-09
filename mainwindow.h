@@ -29,7 +29,7 @@ signals:
 
 
 private slots:
-    void on_ButtonStart_clicked();
+    void on_ButtonStartParam_clicked();
     void on_InterSpinBox_valueChanged(int arg1);
     void on_Zoomplus_clicked();
     void on_Zoomminus_clicked();

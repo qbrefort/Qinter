@@ -335,7 +335,7 @@
       </layout>
      </item>
      <item>
-      <widget class="QPushButton" name="ButtonStart">
+      <widget class="QPushButton" name="ButtonStartParam">
        <property name="text">
         <string>Run with parameters</string>
        </property>

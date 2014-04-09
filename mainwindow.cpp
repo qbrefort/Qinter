@@ -96,12 +96,13 @@ void MainWindow::on_ButtonFindSol_clicked()
     Init();
     // Build the frame
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon,erroutlier);
+
 
     if(Qinter==5){
         for (uint i=0;i<(sizeof(err)/sizeof(*err));i++){
            err[i] = 0.00;
         }
+        Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon,erroutlier);
         uint i=0;
         //double startstep=0.05+floor(10*epsilon)/10-floor(10*epsilon)/20;
         double startstep=1;
@@ -175,30 +176,24 @@ void MainWindow::on_ButtonFindSol_clicked()
         }
     }
     else{
-        Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon,erroutlier);
+        on_ButtonStartParam_clicked();
+    }
+}
+
+
+void MainWindow::on_ButtonStartParam_clicked()
+{
+    QElapsedTimer timer;
+    timer.start();
+    RobotTraj();
+    Init();
+    if(Qinter!=5){
         ui->ErrSpinBox_1->setValue(0.3);
         ui->ErrSpinBox_2->setValue(0.3);
         ui->ErrSpinBox_3->setValue(0.3);
         ui->ErrSpinBox_4->setValue(0.3);
         ui->ErrSpinBox_5->setValue(0.3);
-
-        repaint();
-
-        if (timeinfo){
-            QString mess = "Execution time : ";
-            mess.append(QString::number(timer.elapsed()));mess.append(" ms");
-            QMessageBox::information(this,"Info",mess);
-        }
     }
-}
-
-
-void MainWindow::on_ButtonStart_clicked()
-{
-    RobotTraj();
-    QElapsedTimer timer;
-    timer.start();
-    Init();
 
     // Build the frame
 
@@ -206,11 +201,13 @@ void MainWindow::on_ButtonStart_clicked()
     // run SIVIA
     Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon,erroutlier);
     R->DrawRobot(rpos[0],rpos[1],rpos[2]);
+    repaint();
     if (timeinfo){
         QString mess = "Execution time : ";
         mess.append(QString::number(timer.elapsed()));mess.append(" ms");
         QMessageBox::information(this,"Info",mess);
     }
+
 }
 
 void MainWindow::on_ErrSpinBox_1_valueChanged(double arg1)
