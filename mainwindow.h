@@ -17,8 +17,9 @@ public:
 
     void Init();
     void GenTraj();
-    void RobotTraj(int traj);
+    void RobotTraj();
     void Simu();
+    void Zoom();
     double sign(double a);
 
 private:
@@ -43,7 +44,6 @@ private slots:
     void on_ErrSpinBox_5_valueChanged(double arg1);
     void on_EpsilonSpinBox_valueChanged(double arg1);
     void on_checkBox_toggled(bool checked);
-
     void on_TSlider_valueChanged(int value);
     void on_OutlierSpinBox_valueChanged(double arg1);
     void on_Tplot_clicked();

@@ -7,7 +7,6 @@
 #include <QElapsedTimer>
 vector<double> u,xv,yv,thetav;
 double t;
-double traj;
 int timeinfo=1;
 double xmin=-25,xmax=25,ymin=-25,ymax=25;
 double epsilon,erroutlier;
@@ -49,31 +48,23 @@ void MainWindow::GenTraj(){
     }
 }
 
-void MainWindow::RobotTraj(int traj){
+void MainWindow::RobotTraj(){
     //double thetav= (atan(sqrt(7)-4*cos(t))+atan(sqrt(7)+4*cos(t)))-(atan(4-sqrt(7))+atan(4+sqrt(7)));
-    // 8 cruve
-    if(traj==0){
-        rpos[0]=xv[t];
-        rpos[1]=yv[t];
-        rpos[2]=thetav[t];
-    }
-    // Circle
-    if(traj==1){
-        double thetav = -tan(t);
-        double xv = 9*sin(t);
-        double yv = 9*cos(t);
-        rpos[0]= xv;
-        rpos[1]= yv;
-        rpos[2]= thetav;
-    }
+    // 8 curve
+    rpos[0]=xv[t];
+    rpos[1]=yv[t];
+    rpos[2]=thetav[t];
+
 }
 void MainWindow::Simu(){
     ui->checkBox->setChecked(false);
 
     for(double i=0;i<6500;i=i+200){
-        t=i;//100;
-        //ui->OutlierSpinBox->setValue(t);
+        t=i;
+
         on_ButtonFindSol_clicked();
+        ui->TSlider->setValue(t);
+        Zoom();
         delay();
     }
     QString messend = "End of simulation";
@@ -83,9 +74,13 @@ void MainWindow::Simu(){
 
 void MainWindow::repaint()
 {
-    RobotTraj(traj);
+    RobotTraj();
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
     Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon,erroutlier);
+    for(double i=0;i<6500-111;i=i+10){
+        R->DrawLine(xv[i],yv[i],xv[i+10],yv[i+10],QPen(Qt::red));
+    }
+
     R->DrawRobot(rpos[0],rpos[1],rpos[2]);
 }
 
@@ -97,14 +92,13 @@ void MainWindow::on_ButtonFindSol_clicked()
 {
     QElapsedTimer timer;
     timer.start();
-    RobotTraj(traj);
+    RobotTraj();
     Init();
     for (uint i=0;i<(sizeof(err)/sizeof(*err));i++){
        err[i] = 0.00;
     }
 
     // Build the frame
-
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
     Sivia sivia(*R,rpos,Qinter,bfind,err,epsilon,erroutlier);
 
@@ -173,11 +167,7 @@ void MainWindow::on_ButtonFindSol_clicked()
     ui->ErrSpinBox_3->setValue(err[2]);
     ui->ErrSpinBox_4->setValue(err[3]);
     ui->ErrSpinBox_5->setValue(err[4]);
-    for(double i=0;i<6500-111;i=i+10){
-        R->DrawLine(xv[i],yv[i],xv[i+10],yv[i+10],QPen(Qt::red));
-    }
-
-    R->DrawRobot(rpos[0],rpos[1],rpos[2]);
+    repaint();
 
     if (timeinfo){
         QString mess = "Execution time : ";
@@ -189,7 +179,7 @@ void MainWindow::on_ButtonFindSol_clicked()
 
 void MainWindow::on_ButtonStart_clicked()
 {
-    RobotTraj(traj);
+    RobotTraj();
     QElapsedTimer timer;
     timer.start();
     Init();
@@ -232,7 +222,13 @@ void MainWindow::on_InterSpinBox_valueChanged(int arg1)
 {
     Qinter = arg1;
 }
-
+void MainWindow::Zoom()
+{
+    xmin = xv[t+220]-5;
+    xmax = xv[t+220]+5;
+    ymin = yv[t+220]-5;
+    ymax = yv[t+220]+5;
+}
 void MainWindow::on_Zoomplus_clicked()
 {
     xmin /= 2;
@@ -253,19 +249,19 @@ void MainWindow::on_Zoomminus_clicked()
 
 void MainWindow::on_ZoomZone_clicked()
 {
-    xmin = rpos[0]-1;
-    xmax = rpos[0]+1;
-    ymin = rpos[1]-1;
-    ymax = rpos[1]+1;
+    xmin = rpos[0]-5;
+    xmax = rpos[0]+5;
+    ymin = rpos[1]-5;
+    ymax = rpos[1]+5;
     repaint();
 }
 
 void MainWindow::on_ZoomReset_clicked()
 {
-    xmin = -10;
-    xmax = 10;
-    ymin = -10;
-    ymax = 10;
+    xmin = -25;
+    xmax = 25;
+    ymin = -25;
+    ymax = 25;
     repaint();
 }
 
@@ -284,7 +280,7 @@ void MainWindow::on_checkBox_toggled(bool checked)
 
 void MainWindow::on_TSlider_valueChanged(int value)
 {
-    t=double(value)/100;
+    t=double(value);
 }
 
 void MainWindow::on_OutlierSpinBox_valueChanged(double arg1)
@@ -294,7 +290,6 @@ void MainWindow::on_OutlierSpinBox_valueChanged(double arg1)
 
 void MainWindow::on_Tplot_clicked()
 {
-    traj=0;
     Simu();
 }
 void MainWindow::delay()
