@@ -14,14 +14,10 @@ double xmin=-25,xmax=25,ymin=-25,ymax=25;
 double epsilon,erroutlier;
 double err[5]={0.5,0.5,0.5,0.5,0.5};
 double Qinter;
-<<<<<<< HEAD
-int isinside=0;
-=======
 int bfind=0;
 int Sperhaps=0;
 double rpos[3]={3,-5,0};
 repere *R;
->>>>>>> soft
 
 MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
@@ -99,10 +95,6 @@ void MainWindow::Simu(int method){
 
 void MainWindow::repaint()
 {
-<<<<<<< HEAD
-    repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,Qinter,isinside,err,epsilon);
-=======
     R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
     Sivia sivia(*R,rpos,Qinter,bfind,Sperhaps,err,epsilon,erroutlier);
     RobotTraj();
@@ -111,7 +103,6 @@ void MainWindow::repaint()
     }
     R->DrawRobot(rpos[0],rpos[1],rpos[2]);
 
->>>>>>> soft
 }
 
 MainWindow::~MainWindow() {
@@ -212,33 +203,6 @@ void MainWindow::on_ButtonFindSol_clicked()
             }
            // qDebug()<<"err back: "<<"is "<<err[0]<<";"<<err[1]<<";"<<err[2]<<";"<<err[3]<<";"<<err[4]<<endl;
 
-<<<<<<< HEAD
-    // Build the frame
-
-    repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,Qinter,isinside,err,epsilon);
-    // run SIVIA
-//    while(isinside==0){
-//        Qinter=Qinter-1;
-//        ui->InterSpinBox->setValue(Qinter);
-//        Sivia sivia(*R,Qinter,isinside,err,epsilon);
-//    }
-    //QString valueAsString = "Robot localized with ";
-    //valueAsString.append(QString::number(Qinter));valueAsString.append("/5 inliers");
-    //QMessageBox::information(this,"Info",valueAsString);
-
-    while(isinside==1){
-        err=err-0.05;
-        Sivia sivia(*R,Qinter,isinside,err,epsilon);
-    }
-    err=err+0.05;
-    ui->ErrSpinBox_2->setValue(err);
-    Sivia sivia2(*R,Qinter,isinside,err,epsilon);
-    //QString mess2 = "Robot localized with ";
-    //mess2.append(QString::number(err));mess2.append(" error");
-    //QMessageBox::information(this,"Info",mess2);
-    qDebug() << "This operation took" << timer.elapsed() << "milliseconds";
-=======
             while(bfind==0){
 
                 for (uint j=0;j<(sizeof(err)/sizeof(*err));j++){
@@ -280,7 +244,6 @@ void MainWindow::on_ButtonFindSol_clicked()
     else{
         on_ButtonStartParam_clicked();
     }
->>>>>>> soft
 }
 
 
@@ -308,13 +271,6 @@ void MainWindow::on_ButtonStartParam_clicked()
         QMessageBox::information(this,"Info",mess);
     }
 
-<<<<<<< HEAD
-    repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    // run SIVIA
-    Sivia sivia(*R,Qinter,isinside,err,epsilon);
-    qDebug() << "This operation took" << timer.elapsed() << "milliseconds";
-=======
->>>>>>> soft
 }
 
 void MainWindow::on_ErrSpinBox_1_valueChanged(double arg1)
@@ -423,9 +379,3 @@ void MainWindow::delay()
     while( QTime::currentTime() < dieTime )
     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 }
-
-
-
-
-
-

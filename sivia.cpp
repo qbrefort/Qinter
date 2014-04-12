@@ -1,7 +1,7 @@
 #include "sivia.h"
 #include <math.h>
 
-void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int isctcinside,int& isinside, const QColor & pencolor, const QColor & brushcolor) {
+void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int isinside,int& bfind, const QColor & pencolor, const QColor & brushcolor) {
     IntervalVector X0=X;       // get a copy
     try {
         c.contract(X);
@@ -10,7 +10,7 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int isctcinside,int& isi
         int n=X0.diff(X,rest); // calculate the set difference
         for (int i=0; i<n; i++) {     // display the boxes
             R.DrawBox(rest[i][0].lb(),rest[i][0].ub(), rest[i][1].lb(),rest[i][1].ub(),QPen(pencolor),QBrush(brushcolor));
-            if (isctcinside==1) isinside=1;
+            if (isinside==1) bfind=1;
         }
         delete[] rest;
     } catch(EmptyBoxException&) {
@@ -30,12 +30,7 @@ Sivia::Sivia(repere& R,double *rpos,int Qinter,int &bfind,int &Sperhaps,double *
     //min g(x)=sum(err[i])
     //all my constraints
 
-<<<<<<< HEAD
-Sivia::Sivia(repere& R,int Qinter,int &isinside,double err, double epsilon) : R(R) {
-    isinside=0;
-=======
     bfind=0;
->>>>>>> soft
     // Create the function we want to apply SIVIA on.
     Variable x,y;
     double x1,y1,x2,y2,x3,y3,x4,y4,x5,y5;
@@ -150,10 +145,10 @@ Sivia::Sivia(repere& R,int Qinter,int &isinside,double err, double epsilon) : R(
         IntervalVector box=s.top();
 
         s.pop();
-        contract_and_draw(inside,box,1,isinside,Qt::magenta,Qt::red);
+        contract_and_draw(inside,box,1,bfind,Qt::magenta,Qt::red);
         if (box.is_empty()) { continue; }
 
-        contract_and_draw(outside,box,0,isinside,Qt::darkBlue,Qt::cyan);
+        contract_and_draw(outside,box,0,bfind,Qt::darkBlue,Qt::cyan);
         if (box.is_empty()) { continue; }
 
         if (box.max_diam()<epsilon) {
