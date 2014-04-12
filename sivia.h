@@ -17,13 +17,14 @@ public:
      * R:   where to draw the boxes.
      * epsilon: precision downto which boxes are bisected.
      */
-    Sivia(repere& R,int Qinter, int &find, double err, double epsilon);
+    Sivia(repere& R,double *rpos,int Qinter, int &find,int &Sperhaps, double *err, double epsilon,double erroutlier);
 
     /*
      * Contract "box" with "c" and draw the trace (i.e., the difference between box and c(box))
      * with the colors "pencolor" and "brushcolor".
      */
     void contract_and_draw(Ctc& c, IntervalVector& box,int isinside,int &bfind,  const QColor & pencolor, const QColor & brushcolor);
+    int inclun(IntervalVector& box);
 
 private:
     repere& R;
