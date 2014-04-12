@@ -1,7 +1,7 @@
 #include "sivia.h"
 #include <math.h>
 
-void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int isinside,int& bfind, const QColor & pencolor, const QColor & brushcolor) {
+void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int isctcinside,int& isinside, const QColor & pencolor, const QColor & brushcolor) {
     IntervalVector X0=X;       // get a copy
     try {
         c.contract(X);
@@ -10,7 +10,7 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int isinside,int& bfind,
         int n=X0.diff(X,rest); // calculate the set difference
         for (int i=0; i<n; i++) {     // display the boxes
             R.DrawBox(rest[i][0].lb(),rest[i][0].ub(), rest[i][1].lb(),rest[i][1].ub(),QPen(pencolor),QBrush(brushcolor));
-            if (isinside==1) bfind=1;
+            if (isctcinside==1) isinside=1;
         }
         delete[] rest;
     } catch(EmptyBoxException&) {
@@ -18,25 +18,18 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int isinside,int& bfind,
     }
 }
 
-int Sivia::inclun(IntervalVector& X){
-    Interval B0=X[0];
-    Interval B1=X[1];
-    int r=0;
-}
-
-
-Sivia::Sivia(repere& R,double *rpos,int Qinter,int &bfind,int &Sperhaps,double *err, double epsilon, double erroutlier) : R(R) {
+Sivia::Sivia(repere& R,double *rpos,int Qinter,int &isinside,int &Sperhaps,double *err, double epsilon, double erroutlier) : R(R) {
 
     //min g(x)=sum(err[i])
     //all my constraints
 
-    bfind=0;
+    isinside=0;
     // Create the function we want to apply SIVIA on.
     Variable x,y;
     double x1,y1,x2,y2,x3,y3,x4,y4,x5,y5;
     double r1,r2,r3,r4,r5;
     //r1=9.0;r2=2.0;r3=6.0;r4=6.0;r5=10.0;
-    y1=x1=14;x2=4;y2=-7;x3=7;y3=10;x4=y4=-10;x5=-4;y5=2;
+    y1=x1=14;x2=4;y2=-7;x3=7;y3=10;x4=y4=-10;x5=-4;y5=12;
     double xr=rpos[0],yr=rpos[1];
     r1=sqrt(pow((xr-x1),2)+pow((yr-y1),2));
     r2=sqrt(pow((xr-x2),2)+pow((yr-y2),2))*(1+erroutlier/100);
@@ -118,9 +111,8 @@ Sivia::Sivia(repere& R,double *rpos,int Qinter,int &bfind,int &Sperhaps,double *
     Array<Ctc> Ain(inside1,inside2,inside3,inside4,inside5);
 
     Array<Ctc> Aout(outside1,outside2,outside3,outside4,outside5);
-    //int n = 1; //nb of intersected contractor
-    int maxq = 5;
-    int ctcq = maxq - Qinter + 1;
+    int maxq = 5; //nb of contractors
+    int ctcq = maxq - Qinter + 1; //nb for q-relaxed function of Ibex
     CtcQInter inside(Ain,ctcq);
     CtcQInter outside(Aout,Qinter);
 
@@ -145,10 +137,10 @@ Sivia::Sivia(repere& R,double *rpos,int Qinter,int &bfind,int &Sperhaps,double *
         IntervalVector box=s.top();
 
         s.pop();
-        contract_and_draw(inside,box,1,bfind,Qt::magenta,Qt::red);
+        contract_and_draw(inside,box,1,isinside,Qt::magenta,Qt::red);
         if (box.is_empty()) { continue; }
 
-        contract_and_draw(outside,box,0,bfind,Qt::darkBlue,Qt::cyan);
+        contract_and_draw(outside,box,0,isinside,Qt::darkBlue,Qt::cyan);
         if (box.is_empty()) { continue; }
 
         if (box.max_diam()<epsilon) {
@@ -168,7 +160,5 @@ Sivia::Sivia(repere& R,double *rpos,int Qinter,int &bfind,int &Sperhaps,double *
     R.DrawEllipse(x3,y3,re,QPen(Qt::black),QBrush(Qt::NoBrush));
     R.DrawEllipse(x4,y4,re,QPen(Qt::black),QBrush(Qt::NoBrush));
     R.DrawEllipse(x5,y5,re,QPen(Qt::black),QBrush(Qt::NoBrush));
-
-    R.Save("paving");
 
 }

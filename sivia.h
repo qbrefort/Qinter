@@ -24,7 +24,6 @@ public:
      * with the colors "pencolor" and "brushcolor".
      */
     void contract_and_draw(Ctc& c, IntervalVector& box,int isinside,int &bfind,  const QColor & pencolor, const QColor & brushcolor);
-    int inclun(IntervalVector& box);
 
 private:
     repere& R;

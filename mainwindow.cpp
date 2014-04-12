@@ -14,15 +14,25 @@ double xmin=-25,xmax=25,ymin=-25,ymax=25;
 double epsilon,erroutlier;
 double err[5]={0.5,0.5,0.5,0.5,0.5};
 double Qinter;
-int bfind=0;
+int isinside=0;
 int Sperhaps=0;
 double rpos[3]={3,-5,0};
 repere *R;
 
+double MainWindow::sign(double a){
+    if (a >= 0)
+        return 1;
+    else
+        return -1;
+}
+
 MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
     GenTraj();
-    //MainWindow::on_ButtonFindSol_clicked();
+}
+
+MainWindow::~MainWindow() {
+    delete ui;
 }
 
 void MainWindow::Init() {
@@ -31,12 +41,6 @@ void MainWindow::Init() {
     Qinter=ui->InterSpinBox->value();
 }
 
-double MainWindow::sign(double a){
-    if (a >= 0)
-        return 1;
-    else
-        return -1;
-}
 void MainWindow::GenTraj(){
     // 8 curve
     int nb_step=6500;
@@ -96,17 +100,13 @@ void MainWindow::Simu(int method){
 void MainWindow::repaint()
 {
     R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,rpos,Qinter,bfind,Sperhaps,err,epsilon,erroutlier);
+    Sivia sivia(*R,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
     RobotTraj();
     for(double i=0;i<6500-111;i=i+10){
         R->DrawLine(xv[i],yv[i],xv[i+10],yv[i+10],QPen(Qt::red));
     }
     R->DrawRobot(rpos[0],rpos[1],rpos[2]);
-
-}
-
-MainWindow::~MainWindow() {
-    delete ui;
+    R->Save("paving");
 }
 
 void MainWindow::on_ButtonGONME_clicked()
@@ -127,26 +127,23 @@ void MainWindow::on_ButtonGONME_clicked()
     ui->ErrSpinBox_5->setValue(err[4]);
 
     ui->InterSpinBox->setValue(5);
-    bfind=0;
+    isinside=0;
 
 
     ui->OutlierSpinBox->setValue(15);
 
-    while(bfind!=1 && epsilon>0.01){
+    while(isinside!=1 && epsilon>0.01){
         if(Sperhaps==0){
             Qinter--;
             ui->InterSpinBox->setValue(Qinter);
-            qDebug()<<"q: "<<Qinter<<endl;
-            Sivia sivia(*R,rpos,Qinter,bfind,Sperhaps,err,epsilon,erroutlier);
+            Sivia sivia(*R,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
         }
         else{
             epsilon/=2;
             ui->EpsilonSpinBox->setValue(epsilon);
-            Sivia sivia2(*R,rpos,Qinter,bfind,Sperhaps,err,epsilon,erroutlier);
-            qDebug()<<"ep: "<<epsilon<<endl;
+            Sivia sivia(*R,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
         }
     }
-
 
     repaint();
 
@@ -164,85 +161,76 @@ void MainWindow::on_ButtonFindSol_clicked()
     timer.start();
     RobotTraj();
     Init();
-    if(Qinter==5){
-        for (uint i=0;i<(sizeof(err)/sizeof(*err));i++){
-           err[i] = 0.00;
-        }
+    ui->InterSpinBox->setValue(5);
 
-        Sivia sivia(*R,rpos,Qinter,bfind,Sperhaps,err,epsilon,erroutlier);
-        uint i=0;
-        //double startstep=0.05+floor(10*epsilon)/10-floor(10*epsilon)/20;
-        double startstep=1;
-        //qDebug()<<"start: "<<startstep<<endl;
-        double step = 0.5*(1+erroutlier/10);
-        int nstep = 2;
-        int stepctr=0;
-        while(step>0.05){
-            int forw=0;
-            int back=0;
-            // "Forward"
-    //        qDebug()<<"Start Step: "<<startstep<<endl;
-    //        qDebug()<<"Step: "<<step<<endl;
-            // "Backward"
-            // The idea here is to developp a 'forward/backward' like method.
-            // Maybe we iterate with a high step in forward and lower the step to find a solution in backward.
-            while(bfind==1){
-                for (uint j=0;j<(sizeof(err)/sizeof(*err));j++){
-                    err[j]=startstep;
-                    if(i==j) err[j]=startstep-((stepctr+1))*step;
-                }
-
-                Sivia sivia(*R,rpos,Qinter,bfind,Sperhaps,err,epsilon,erroutlier);
-                stepctr=(stepctr+1)%nstep;
-                if (stepctr==0){
-                    i++;
-                    i = i % (sizeof(err)/sizeof(*err));
-                    if(i==0)    startstep=startstep-step;
-                }
-                back++;
-            }
-           // qDebug()<<"err back: "<<"is "<<err[0]<<";"<<err[1]<<";"<<err[2]<<";"<<err[3]<<";"<<err[4]<<endl;
-
-            while(bfind==0){
-
-                for (uint j=0;j<(sizeof(err)/sizeof(*err));j++){
-                    err[j]=startstep;
-                    if(i==j) err[j]=startstep+((stepctr+1))*step;
-                }
-
-                Sivia sivia(*R,rpos,Qinter,bfind,Sperhaps,err,epsilon,erroutlier);
-                stepctr=(stepctr+1)%nstep;
-                if (stepctr==0){
-                    i++;
-                    i = i % (sizeof(err)/sizeof(*err));
-                    if(i==0)    startstep=startstep+step;
-                }
-                forw++;
-            }
-            //qDebug()<<"err for: "<<"is "<<err[0]<<";"<<err[1]<<";"<<err[2]<<";"<<err[3]<<";"<<err[4]<<endl;
-            if(back>forw)
-                startstep/=0.5;
-            else
-                startstep*=0.5;
-            step/=2;
-
-        }
-        ui->ErrSpinBox_1->setValue(err[0]);
-        ui->ErrSpinBox_2->setValue(err[1]);
-        ui->ErrSpinBox_3->setValue(err[2]);
-        ui->ErrSpinBox_4->setValue(err[3]);
-        ui->ErrSpinBox_5->setValue(err[4]);
-        repaint();
-
-        if (timeinfo){
-            QString mess = "Execution time : ";
-            mess.append(QString::number(timer.elapsed()));mess.append(" ms");
-            QMessageBox::information(this,"Info",mess);
-        }
+    for (uint i=0;i<(sizeof(err)/sizeof(*err));i++){
+       err[i] = 0.00;
     }
 
-    else{
-        on_ButtonStartParam_clicked();
+    Sivia sivia(*R,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+    uint i=0;
+    //double startstep=0.05+floor(10*epsilon)/10-floor(10*epsilon)/20;
+    double startstep=1;
+    double step = 0.5*(1+erroutlier/10);
+    int nstep = 2;
+    int stepctr=0;
+
+    while(step>0.05){
+        int forw=0;
+        int back=0;
+
+        while(isinside==1){
+            for (uint j=0;j<(sizeof(err)/sizeof(*err));j++){
+                err[j]=startstep;
+                if(i==j) err[j]=startstep-((stepctr+1))*step;
+            }
+
+            Sivia sivia(*R,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+            stepctr=(stepctr+1)%nstep;
+            if (stepctr==0){
+                i++;
+                i = i % (sizeof(err)/sizeof(*err));
+                if(i==0)    startstep=startstep-step;
+            }
+            back++;
+        }
+       // qDebug()<<"err back: "<<"is "<<err[0]<<";"<<err[1]<<";"<<err[2]<<";"<<err[3]<<";"<<err[4]<<endl;
+
+        while(isinside==0){
+
+            for (uint j=0;j<(sizeof(err)/sizeof(*err));j++){
+                err[j]=startstep;
+                if(i==j) err[j]=startstep+((stepctr+1))*step;
+            }
+
+            Sivia sivia(*R,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+            stepctr=(stepctr+1)%nstep;
+            if (stepctr==0){
+                i++;
+                i = i % (sizeof(err)/sizeof(*err));
+                if(i==0)    startstep=startstep+step;
+            }
+            forw++;
+        }
+        //qDebug()<<"err for: "<<"is "<<err[0]<<";"<<err[1]<<";"<<err[2]<<";"<<err[3]<<";"<<err[4]<<endl;
+        if(back>forw)
+            startstep/=0.5;
+        else
+            startstep*=0.5;
+        step/=2;
+
+    }
+    ui->ErrSpinBox_1->setValue(err[0]);
+    ui->ErrSpinBox_2->setValue(err[1]);
+    ui->ErrSpinBox_3->setValue(err[2]);
+    ui->ErrSpinBox_4->setValue(err[3]);
+    ui->ErrSpinBox_5->setValue(err[4]);
+    repaint();
+
+    if (timeinfo){
+        QString mess = "Execution time : ";
+        mess.append(QString::number(timer.elapsed()));mess.append(" ms");
+        QMessageBox::information(this,"Info",mess);
     }
 }
 
@@ -261,8 +249,7 @@ void MainWindow::on_ButtonStartParam_clicked()
         ui->ErrSpinBox_5->setValue(0.1);
     }
 
-
-    Sivia sivia(*R,rpos,Qinter,bfind,Sperhaps,err,epsilon,erroutlier);
+    Sivia sivia(*R,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
     R->DrawRobot(rpos[0],rpos[1],rpos[2]);
     repaint();
     if (timeinfo){
@@ -341,12 +328,10 @@ void MainWindow::on_ZoomReset_clicked()
     repaint();
 }
 
-
 void MainWindow::on_EpsilonSpinBox_valueChanged(double arg1)
 {
     epsilon = arg1;
 }
-
 
 void MainWindow::on_checkBox_toggled(bool checked)
 {
@@ -373,6 +358,7 @@ void MainWindow::on_Tplot_2_clicked()
 {
     Simu(2);
 }
+
 void MainWindow::delay()
 {
     QTime dieTime= QTime::currentTime().addMSecs(10);
