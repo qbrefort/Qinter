@@ -10,7 +10,7 @@ double xmin=-10,xmax=10,ymin=-10,ymax=10;
 double epsilon;
 double err=0.5;
 double Qinter;
-int bfind=0;
+int isinside=0;
 
 MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
@@ -26,7 +26,7 @@ void MainWindow::Init() {
 void MainWindow::repaint()
 {
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,Qinter,bfind,err,epsilon);
+    Sivia sivia(*R,Qinter,isinside,err,epsilon);
 }
 
 MainWindow::~MainWindow() {
@@ -42,24 +42,24 @@ void MainWindow::on_ButtonFindSol_clicked()
     // Build the frame
 
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,Qinter,bfind,err,epsilon);
+    Sivia sivia(*R,Qinter,isinside,err,epsilon);
     // run SIVIA
-//    while(bfind==0){
+//    while(isinside==0){
 //        Qinter=Qinter-1;
 //        ui->InterSpinBox->setValue(Qinter);
-//        Sivia sivia(*R,Qinter,bfind,err,epsilon);
+//        Sivia sivia(*R,Qinter,isinside,err,epsilon);
 //    }
     //QString valueAsString = "Robot localized with ";
     //valueAsString.append(QString::number(Qinter));valueAsString.append("/5 inliers");
     //QMessageBox::information(this,"Info",valueAsString);
 
-    while(bfind==1){
+    while(isinside==1){
         err=err-0.05;
-        Sivia sivia(*R,Qinter,bfind,err,epsilon);
+        Sivia sivia(*R,Qinter,isinside,err,epsilon);
     }
     err=err+0.05;
     ui->ErrSpinBox_2->setValue(err);
-    Sivia sivia2(*R,Qinter,bfind,err,epsilon);
+    Sivia sivia2(*R,Qinter,isinside,err,epsilon);
     //QString mess2 = "Robot localized with ";
     //mess2.append(QString::number(err));mess2.append(" error");
     //QMessageBox::information(this,"Info",mess2);
@@ -77,7 +77,7 @@ void MainWindow::on_ButtonStart_clicked()
 
     repere* R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
     // run SIVIA
-    Sivia sivia(*R,Qinter,bfind,err,epsilon);
+    Sivia sivia(*R,Qinter,isinside,err,epsilon);
     qDebug() << "This operation took" << timer.elapsed() << "milliseconds";
 }
 
