@@ -18,7 +18,7 @@ public:
     void Init();
     void GenTraj();
     void RobotTraj();
-    void Simu();
+    void Simu(int method);
     void Zoom();
     double sign(double a);
 
@@ -48,6 +48,8 @@ private slots:
     void on_OutlierSpinBox_valueChanged(double arg1);
     void on_Tplot_clicked();
     void delay();
+    void on_ButtonGONME_clicked();
+    void on_Tplot_2_clicked();
 };
 
 

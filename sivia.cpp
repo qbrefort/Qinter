@@ -18,21 +18,31 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int isinside,int& bfind,
     }
 }
 
+int Sivia::inclun(IntervalVector& X){
+    Interval B0=X[0];
+    Interval B1=X[1];
+    int r=0;
+}
 
-Sivia::Sivia(repere& R,double *rpos,int Qinter,int &bfind,double *err, double epsilon, double erroutlier) : R(R) {
+
+Sivia::Sivia(repere& R,double *rpos,int Qinter,int &bfind,int &Sperhaps,double *err, double epsilon, double erroutlier) : R(R) {
+
+    //min g(x)=sum(err[i])
+    //all my constraints
+
     bfind=0;
     // Create the function we want to apply SIVIA on.
     Variable x,y;
     double x1,y1,x2,y2,x3,y3,x4,y4,x5,y5;
     double r1,r2,r3,r4,r5;
     //r1=9.0;r2=2.0;r3=6.0;r4=6.0;r5=10.0;
-    y1=x1=14;x2=4;y2=-7;x3=7;y3=10;x4=y4=-20;x5=-4;y5=2;
+    y1=x1=14;x2=4;y2=-7;x3=7;y3=10;x4=y4=-10;x5=-4;y5=2;
     double xr=rpos[0],yr=rpos[1];
     r1=sqrt(pow((xr-x1),2)+pow((yr-y1),2));
-    r2=sqrt(pow((xr-x2),2)+pow((yr-y2),2));
+    r2=sqrt(pow((xr-x2),2)+pow((yr-y2),2))*(1+erroutlier/100);
     r3=sqrt(pow((xr-x3),2)+pow((yr-y3),2));
     r4=sqrt(pow((xr-x4),2)+pow((yr-y4),2));
-    r5=sqrt(pow((xr-x5),2)+pow((yr-y5),2))*(1+erroutlier/100);
+    r5=sqrt(pow((xr-x5),2)+pow((yr-y5),2));
     Function f(x,y,sqr(x-x1)+sqr(y-y1));
     Function f2(x,y,sqr(x-x2)+sqr(y-y2));
     Function f3(x,y,sqr(x-x3)+sqr(y-y3));
@@ -109,8 +119,9 @@ Sivia::Sivia(repere& R,double *rpos,int Qinter,int &bfind,double *err, double ep
 
     Array<Ctc> Aout(outside1,outside2,outside3,outside4,outside5);
     //int n = 1; //nb of intersected contractor
-    int q = 5 - Qinter + 1;
-    CtcQInter inside(Ain,q);
+    int maxq = 5;
+    int ctcq = maxq - Qinter + 1;
+    CtcQInter inside(Ain,ctcq);
     CtcQInter outside(Aout,Qinter);
 
 
@@ -126,9 +137,13 @@ Sivia::Sivia(repere& R,double *rpos,int Qinter,int &bfind,double *err, double ep
 
     stack<IntervalVector> s;
     s.push(box);
-
+    int q = maxq - Qinter;
+    int K_ok[5]={0,0,0,0,0};
+    int K_ind[5]={0,0,0,0,0};
+    Sperhaps=0;
     while (!s.empty()) {
         IntervalVector box=s.top();
+
         s.pop();
         contract_and_draw(inside,box,1,bfind,Qt::magenta,Qt::red);
         if (box.is_empty()) { continue; }
@@ -138,6 +153,7 @@ Sivia::Sivia(repere& R,double *rpos,int Qinter,int &bfind,double *err, double ep
 
         if (box.max_diam()<epsilon) {
             R.DrawBox(box[0].lb(),box[0].ub(),box[1].lb(),box[1].ub(),QPen(Qt::yellow),QBrush(Qt::white));
+            Sperhaps=1;
         } else {
             pair<IntervalVector,IntervalVector> boxes=lf.bisect(box);
             s.push(boxes.first);
