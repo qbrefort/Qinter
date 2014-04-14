@@ -147,6 +147,13 @@ void repere::DrawRobot(double x,double y,double theta, double s)
     X.push_back(0*s); Y.push_back(1*s);
     DrawPolygone(x,y,theta,X,Y,QPen(Qt::blue),QBrush(Qt::NoBrush));
 }
+void repere::DrawRobot2(double x,double y,double theta, double s)
+{   vector<double> X,Y;
+    X.push_back(0*s); Y.push_back(-1*s);
+    X.push_back(3*s); Y.push_back(0*s);
+    X.push_back(0*s); Y.push_back(1*s);
+    DrawPolygone(x,y,theta,X,Y,QPen(Qt::red),QBrush(Qt::NoBrush));
+}
 //--------------------------------------------------------------------------------------------------
 void repere::DrawText(QString s, int n)
 {       for (int k=1;k<=n;k++)

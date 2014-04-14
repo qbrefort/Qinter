@@ -7,7 +7,8 @@
 #include <fstream>
 
 #include <QElapsedTimer>
-vector<double> u,xv,yv,thetav;
+vector<double> u,xv,yv,thetav,xc,yc;
+IntervalVector iinside(2);
 double t;
 int timeinfo=1;
 double xmin=-25,xmax=25,ymin=-25,ymax=25;
@@ -100,12 +101,13 @@ void MainWindow::Simu(int method){
 void MainWindow::repaint()
 {
     R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+    Sivia sivia(*R,iinside,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
     RobotTraj();
     for(double i=0;i<6500-111;i=i+10){
         R->DrawLine(xv[i],yv[i],xv[i+10],yv[i+10],QPen(Qt::red));
     }
     R->DrawRobot(rpos[0],rpos[1],rpos[2]);
+    R->DrawRobot2(iinside[0].mid(),iinside[1].mid(),rpos[2]);
     R->Save("paving");
 }
 
@@ -130,18 +132,16 @@ void MainWindow::on_ButtonGONME_clicked()
     isinside=0;
 
 
-    ui->OutlierSpinBox->setValue(15);
-
     while(isinside!=1 && epsilon>0.01){
         if(Sperhaps==0){
             Qinter--;
             ui->InterSpinBox->setValue(Qinter);
-            Sivia sivia(*R,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+            Sivia sivia(*R,iinside,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
         }
         else{
             epsilon/=2;
             ui->EpsilonSpinBox->setValue(epsilon);
-            Sivia sivia(*R,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+            Sivia sivia(*R,iinside,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
         }
     }
 
@@ -167,7 +167,7 @@ void MainWindow::on_ButtonFindSol_clicked()
        err[i] = 0.00;
     }
 
-    Sivia sivia(*R,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+    Sivia sivia(*R,iinside,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
     uint i=0;
     //double startstep=0.05+floor(10*epsilon)/10-floor(10*epsilon)/20;
     double startstep=1;
@@ -185,7 +185,7 @@ void MainWindow::on_ButtonFindSol_clicked()
                 if(i==j) err[j]=startstep-((stepctr+1))*step;
             }
 
-            Sivia sivia(*R,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+            Sivia sivia(*R,iinside,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
             stepctr=(stepctr+1)%nstep;
             if (stepctr==0){
                 i++;
@@ -203,7 +203,7 @@ void MainWindow::on_ButtonFindSol_clicked()
                 if(i==j) err[j]=startstep+((stepctr+1))*step;
             }
 
-            Sivia sivia(*R,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+            Sivia sivia(*R,iinside,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
             stepctr=(stepctr+1)%nstep;
             if (stepctr==0){
                 i++;
@@ -249,7 +249,7 @@ void MainWindow::on_ButtonStartParam_clicked()
         ui->ErrSpinBox_5->setValue(0.1);
     }
 
-    Sivia sivia(*R,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+    Sivia sivia(*R,iinside,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
     R->DrawRobot(rpos[0],rpos[1],rpos[2]);
     repaint();
     if (timeinfo){

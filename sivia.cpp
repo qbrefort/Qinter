@@ -1,7 +1,7 @@
 #include "sivia.h"
 #include <math.h>
 
-void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int isctcinside,int& isinside, const QColor & pencolor, const QColor & brushcolor) {
+void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& iinside,int isctcinside,int& isinside, const QColor & pencolor, const QColor & brushcolor) {
     IntervalVector X0=X;       // get a copy
     try {
         c.contract(X);
@@ -10,7 +10,10 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int isctcinside,int& isi
         int n=X0.diff(X,rest); // calculate the set difference
         for (int i=0; i<n; i++) {     // display the boxes
             R.DrawBox(rest[i][0].lb(),rest[i][0].ub(), rest[i][1].lb(),rest[i][1].ub(),QPen(pencolor),QBrush(brushcolor));
-            if (isctcinside==1) isinside=1;
+            if (isctcinside==1) {
+                isinside=1;
+                iinside=rest[i].mid();
+            }
         }
         delete[] rest;
     } catch(EmptyBoxException&) {
@@ -18,7 +21,7 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,int isctcinside,int& isi
     }
 }
 
-Sivia::Sivia(repere& R,double *rpos,int Qinter,int &isinside,int &Sperhaps,double *err, double epsilon, double erroutlier) : R(R) {
+Sivia::Sivia(repere& R,IntervalVector& iinside,double *rpos,int Qinter,int &isinside,int &Sperhaps,double *err, double epsilon, double erroutlier) : R(R) {
 
     //min g(x)=sum(err[i])
     //all my constraints
@@ -126,21 +129,17 @@ Sivia::Sivia(repere& R,double *rpos,int Qinter,int &isinside,int &Sperhaps,doubl
     // "LargestFirst" means that the dimension bisected
     // is always the largest one.
     LargestFirst lf;
-
     stack<IntervalVector> s;
     s.push(box);
-    int q = maxq - Qinter;
-    int K_ok[5]={0,0,0,0,0};
-    int K_ind[5]={0,0,0,0,0};
     Sperhaps=0;
     while (!s.empty()) {
         IntervalVector box=s.top();
 
         s.pop();
-        contract_and_draw(inside,box,1,isinside,Qt::magenta,Qt::red);
+        contract_and_draw(inside,box,iinside,1,isinside,Qt::magenta,Qt::red);
         if (box.is_empty()) { continue; }
 
-        contract_and_draw(outside,box,0,isinside,Qt::darkBlue,Qt::cyan);
+        contract_and_draw(outside,box,iinside,0,isinside,Qt::darkBlue,Qt::cyan);
         if (box.is_empty()) { continue; }
 
         if (box.max_diam()<epsilon) {
