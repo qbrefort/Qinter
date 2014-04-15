@@ -3,11 +3,12 @@
 
 #include "ibex.h"
 #include "sivia.h"
+#include <math.h>
 
 #include <fstream>
 
 #include <QElapsedTimer>
-vector<double> u,xv,yv,thetav,xc,yc;
+vector<double> u,xv,yv,thetav,xc,yc,errpos;
 IntervalVector iinside(2);
 double t;
 int timeinfo=1;
@@ -66,6 +67,7 @@ void MainWindow::RobotTraj(){
 }
 
 void MainWindow::Simu(int method){
+    errpos.clear();
     ofstream myfile;
     myfile.open ("log_simu.txt");
     remove("log_simu.txt");
@@ -94,7 +96,26 @@ void MainWindow::Simu(int method){
     myfile.close();
     QString mess = "Execution time : ";
     mess.append(QString::number(tsimu.elapsed()));mess.append(" ms\n");
-    mess.append(vt);mess.append(" ms");
+    mess.append(vt);mess.append(" ms\n");
+    double cerpos=0;
+    uint i=0;
+    vector<double> vcerpos;
+    while (!errpos.empty()){
+        cerpos+=errpos.back();
+        i++;
+        vcerpos.push_back(cerpos);
+        errpos.pop_back();
+    }
+    double mean= cerpos/i;
+    cerpos = 0;
+    while(!vcerpos.empty()){
+        cerpos+=pow(vcerpos.back()-mean,2);
+        vcerpos.pop_back();
+    }
+    cerpos/=i;
+
+    mess.append(QString::number(mean));mess.append(" average error (pixel)\n");
+    mess.append(QString::number(cerpos));mess.append(" variance (pixel)");
     QMessageBox::information(this,"End of Simulation",mess);
 }
 
@@ -103,12 +124,19 @@ void MainWindow::repaint()
     R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
     Sivia sivia(*R,iinside,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
     RobotTraj();
+    uint cpt=0;
     for(double i=0;i<6500-111;i=i+10){
         R->DrawLine(xv[i],yv[i],xv[i+10],yv[i+10],QPen(Qt::red));
+        cpt++;
     }
     R->DrawRobot(rpos[0],rpos[1],rpos[2]);
-    R->DrawRobot2(iinside[0].mid(),iinside[1].mid(),rpos[2]);
+    double xins=iinside[0].mid();
+    double yins=iinside[1].mid();
+    R->DrawRobot2(xins,yins,rpos[2]);
+    errpos.resize(cpt);
+    errpos.push_back(sqrt(pow(xins-rpos[0],2)+pow(yins-rpos[1],2)));
     R->Save("paving");
+
 }
 
 void MainWindow::on_ButtonGONME_clicked()
