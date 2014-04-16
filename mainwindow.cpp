@@ -16,6 +16,7 @@ double xmin=-25,xmax=25,ymin=-25,ymax=25;
 double epsilon,erroutlier;
 double err[5]={0.5,0.5,0.5,0.5,0.5};
 double Qinter;
+int nbeacon;
 int isinside=0;
 int Sperhaps=0;
 double rpos[3]={3,-5,0};
@@ -122,7 +123,7 @@ void MainWindow::Simu(int method){
 void MainWindow::repaint()
 {
     R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,iinside,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+    Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,erroutlier);
     RobotTraj();
     uint cpt=0;
     for(double i=0;i<6500-111;i=i+10){
@@ -156,20 +157,21 @@ void MainWindow::on_ButtonGONME_clicked()
     ui->ErrSpinBox_4->setValue(err[3]);
     ui->ErrSpinBox_5->setValue(err[4]);
 
-    ui->InterSpinBox->setValue(5);
     isinside=0;
+    Qinter = ui->BeaconSpinBox->value();
+    nbeacon = ui->BeaconSpinBox->value();
 
 
     while(isinside!=1 && epsilon>0.01){
         if(Sperhaps==0){
             Qinter--;
             ui->InterSpinBox->setValue(Qinter);
-            Sivia sivia(*R,iinside,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+            Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,erroutlier);
         }
         else{
             epsilon/=2;
             ui->EpsilonSpinBox->setValue(epsilon);
-            Sivia sivia(*R,iinside,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+            Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,erroutlier);
         }
     }
 
@@ -180,6 +182,7 @@ void MainWindow::on_ButtonGONME_clicked()
         mess.append(QString::number(tgonme.elapsed()));mess.append(" ms");
         QMessageBox::information(this,"Info",mess);
     }
+    ui->InterSpinBox->setValue(Qinter);
 
 }
 
@@ -195,7 +198,7 @@ void MainWindow::on_ButtonFindSol_clicked()
        err[i] = 0.00;
     }
 
-    Sivia sivia(*R,iinside,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+    Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,erroutlier);
     uint i=0;
     //double startstep=0.05+floor(10*epsilon)/10-floor(10*epsilon)/20;
     double startstep=1;
@@ -213,7 +216,7 @@ void MainWindow::on_ButtonFindSol_clicked()
                 if(i==j) err[j]=startstep-((stepctr+1))*step;
             }
 
-            Sivia sivia(*R,iinside,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+            Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,erroutlier);
             stepctr=(stepctr+1)%nstep;
             if (stepctr==0){
                 i++;
@@ -231,7 +234,7 @@ void MainWindow::on_ButtonFindSol_clicked()
                 if(i==j) err[j]=startstep+((stepctr+1))*step;
             }
 
-            Sivia sivia(*R,iinside,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+            Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,erroutlier);
             stepctr=(stepctr+1)%nstep;
             if (stepctr==0){
                 i++;
@@ -277,7 +280,7 @@ void MainWindow::on_ButtonStartParam_clicked()
         ui->ErrSpinBox_5->setValue(0.1);
     }
 
-    Sivia sivia(*R,iinside,rpos,Qinter,isinside,Sperhaps,err,epsilon,erroutlier);
+    Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,erroutlier);
     R->DrawRobot(rpos[0],rpos[1],rpos[2]);
     repaint();
     if (timeinfo){
@@ -361,6 +364,11 @@ void MainWindow::on_EpsilonSpinBox_valueChanged(double arg1)
     epsilon = arg1;
 }
 
+void MainWindow::on_BeaconSpinBox_valueChanged(int arg1)
+{
+    nbeacon = arg1;
+}
+
 void MainWindow::on_checkBox_toggled(bool checked)
 {
     if(checked) timeinfo=1;
@@ -393,3 +401,5 @@ void MainWindow::delay()
     while( QTime::currentTime() < dieTime )
     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 }
+
+

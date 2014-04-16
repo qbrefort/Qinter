@@ -50,6 +50,7 @@ private slots:
     void delay();
     void on_ButtonGONME_clicked();
     void on_Tplot_2_clicked();
+    void on_BeaconSpinBox_valueChanged(int arg1);
 };
 
 
