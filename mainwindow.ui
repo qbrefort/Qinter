@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>858</width>
-    <height>506</height>
+    <width>1004</width>
+    <height>623</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <x>10</x>
       <y>0</y>
       <width>407</width>
-      <height>421</height>
+      <height>551</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -55,7 +55,7 @@
           <number>2</number>
          </property>
          <property name="maximum">
-          <number>6</number>
+          <number>100</number>
          </property>
          <property name="value">
           <number>5</number>
@@ -92,7 +92,7 @@
           <number>1</number>
          </property>
          <property name="maximum">
-          <number>6</number>
+          <number>100</number>
          </property>
          <property name="value">
           <number>5</number>
@@ -148,6 +148,89 @@
       </layout>
      </item>
      <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_9">
+       <item>
+        <widget class="QLabel" name="label_Epsilon_8">
+         <property name="text">
+          <string>nb outliers</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLCDNumber" name="nbOutlierlcd">
+         <property name="styleSheet">
+          <string notr="true">QLCDNumber{
+    color: rgb(255, 0, 0);    
+    background-color: rgb(255, 255, 255);
+}</string>
+         </property>
+         <property name="smallDecimalPoint">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_11">
+       <item>
+        <widget class="QLabel" name="label_Epsilon_9">
+         <property name="text">
+          <string>Probability of wrong sensor</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_6">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QDoubleSpinBox" name="probsensorisfalseSpinBox">
+         <property name="locale">
+          <locale language="English" country="UnitedStates"/>
+         </property>
+         <property name="decimals">
+          <number>0</number>
+         </property>
+         <property name="minimum">
+          <double>0.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>100.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="value">
+          <double>10.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayout_10">
        <item>
         <widget class="QLabel" name="label_Epsilon_6">
@@ -170,7 +253,7 @@
         </spacer>
        </item>
        <item>
-        <widget class="QDoubleSpinBox" name="OutlierSpinBox">
+        <widget class="QDoubleSpinBox" name="errorOutlierSpinBox">
          <property name="locale">
           <locale language="English" country="UnitedStates"/>
          </property>
@@ -187,7 +270,7 @@
           <double>1.000000000000000</double>
          </property>
          <property name="value">
-          <double>10.000000000000000</double>
+          <double>20.000000000000000</double>
          </property>
         </widget>
        </item>
@@ -256,19 +339,6 @@
         </layout>
        </item>
       </layout>
-     </item>
-     <item>
-      <spacer name="verticalSpacer">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
-       </property>
-      </spacer>
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_7">
@@ -451,6 +521,13 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="StopSimu">
+       <property name="text">
+        <string>STOP</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
    <widget class="QGraphicsView" name="graphicsView">
@@ -458,8 +535,8 @@
      <rect>
       <x>430</x>
       <y>0</y>
-      <width>421</width>
-      <height>421</height>
+      <width>551</width>
+      <height>551</height>
      </rect>
     </property>
     <property name="verticalScrollBarPolicy">
@@ -469,13 +546,16 @@
      <enum>Qt::ScrollBarAlwaysOff</enum>
     </property>
    </widget>
+   <zorder>verticalLayoutWidget</zorder>
+   <zorder>graphicsView</zorder>
+   <zorder>probsensorisfalseSpinBox</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>858</width>
+     <width>1004</width>
      <height>25</height>
     </rect>
    </property>

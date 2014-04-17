@@ -21,7 +21,7 @@ HEADERS += mainwindow.h \
 FORMS += mainwindow.ui
 
 # ADD YOUR PATH TO IBEX
-IBEXHOME = /home/quentin/Documents/Ibex/IBEX_INSTALL/INSTALL
+IBEXHOME = /home/quentin/Documents/Ibex/IBEX_INSTALL_2_1/INSTALL
 
 INCLUDEPATH += $$IBEXHOME/IBEX/include/ibex $$IBEXHOME/IBEX/include $$IBEXHOME/soplex-1.7.2/src -frounding-math -msse2 -mfpmath=sse
 

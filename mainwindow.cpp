@@ -14,9 +14,12 @@ double t;
 int timeinfo=1;
 double xmin=-25,xmax=25,ymin=-25,ymax=25;
 double epsilon,erroutlier;
-double err[5]={0.5,0.5,0.5,0.5,0.5};
+double err[100];
+int outlier[100];
 double Qinter;
 int nbeacon;
+int nboutlier;
+int probsensorfalse=10;
 int isinside=0;
 int Sperhaps=0;
 double rpos[3]={3,-5,0};
@@ -42,6 +45,11 @@ void MainWindow::Init() {
     R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
     epsilon=ui->EpsilonSpinBox->value();
     Qinter=ui->InterSpinBox->value();
+    probsensorfalse=ui->probsensorisfalseSpinBox->value();
+    erroutlier = ui->errorOutlierSpinBox->value();
+    nbeacon = ui->BeaconSpinBox->value();
+    nboutlier=0;
+    for (int i=0;i<100;i++) err[i]=0.2;
 }
 
 void MainWindow::GenTraj(){
@@ -77,6 +85,19 @@ void MainWindow::Simu(int method){
     ui->checkBox->setChecked(false);
     QString vt = "";
     QElapsedTimer tsimu;
+    nboutlier = 0;
+    for (int i=0;i<nbeacon;i++){
+        if((rand() % 100) <= probsensorfalse){
+            outlier[i]=1;
+            nboutlier++;
+        }
+        else{
+            outlier[i]=0;
+        }
+    }
+    ui->nbOutlierlcd->display(nboutlier);
+
+
     tsimu.start();
     for(double i=0;i<6500;i=i+200){
         QElapsedTimer tcur;
@@ -93,10 +114,14 @@ void MainWindow::Simu(int method){
         vtcur = QString::number(tcur.elapsed());
         vt.append(vtcur);vt.append("ms ; ");
         myfile << vtcur.toUtf8().constData();myfile << "\n";
+        if(ui->StopSimu->isDown()) {
+            break;
+        }
     }
     myfile.close();
     QString mess = "Execution time : ";
-    mess.append(QString::number(tsimu.elapsed()));mess.append(" ms\n");
+    double exec = tsimu.elapsed();
+    mess.append(QString::number(exec));mess.append(" ms\n");
     mess.append(vt);mess.append(" ms\n");
     double cerpos=0;
     uint i=0;
@@ -114,16 +139,18 @@ void MainWindow::Simu(int method){
         vcerpos.pop_back();
     }
     cerpos/=i;
+    mess.append(QString::number(cerpos));mess.append("\n");//mess.append(" variance (pixel)");
+    mess.append(QString::number(mean));mess.append("\n");//mess.append(" average error (pixel)\n");
+    mess.append(QString::number(exec));mess.append("\n");
 
-    mess.append(QString::number(mean));mess.append(" average error (pixel)\n");
-    mess.append(QString::number(cerpos));mess.append(" variance (pixel)");
+
     QMessageBox::information(this,"End of Simulation",mess);
 }
 
 void MainWindow::repaint()
 {
     R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,erroutlier);
+    Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
     RobotTraj();
     uint cpt=0;
     for(double i=0;i<6500-111;i=i+10){
@@ -147,8 +174,12 @@ void MainWindow::on_ButtonGONME_clicked()
     RobotTraj();
     Init();
 
+    isinside=0;
+    Qinter = ui->BeaconSpinBox->value();
+    nbeacon = ui->BeaconSpinBox->value();
+
     ui->EpsilonSpinBox->setValue(1);
-    for (uint i=0;i<(sizeof(err)/sizeof(*err));i++){
+    for (uint i=0;i<100;i++){
        err[i] = 0.2;
     }
     ui->ErrSpinBox_1->setValue(err[0]);
@@ -157,21 +188,22 @@ void MainWindow::on_ButtonGONME_clicked()
     ui->ErrSpinBox_4->setValue(err[3]);
     ui->ErrSpinBox_5->setValue(err[4]);
 
-    isinside=0;
-    Qinter = ui->BeaconSpinBox->value();
-    nbeacon = ui->BeaconSpinBox->value();
+
 
 
     while(isinside!=1 && epsilon>0.01){
         if(Sperhaps==0){
             Qinter--;
             ui->InterSpinBox->setValue(Qinter);
-            Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,erroutlier);
+            Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
         }
-        else{
+        if(Sperhaps==1){
             epsilon/=2;
             ui->EpsilonSpinBox->setValue(epsilon);
-            Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,erroutlier);
+            Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+        }
+        if(ui->StopSimu->isDown()) {
+            break;
         }
     }
 
@@ -183,7 +215,6 @@ void MainWindow::on_ButtonGONME_clicked()
         QMessageBox::information(this,"Info",mess);
     }
     ui->InterSpinBox->setValue(Qinter);
-
 }
 
 void MainWindow::on_ButtonFindSol_clicked()
@@ -198,7 +229,7 @@ void MainWindow::on_ButtonFindSol_clicked()
        err[i] = 0.00;
     }
 
-    Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,erroutlier);
+    Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
     uint i=0;
     //double startstep=0.05+floor(10*epsilon)/10-floor(10*epsilon)/20;
     double startstep=1;
@@ -216,7 +247,7 @@ void MainWindow::on_ButtonFindSol_clicked()
                 if(i==j) err[j]=startstep-((stepctr+1))*step;
             }
 
-            Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,erroutlier);
+            Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
             stepctr=(stepctr+1)%nstep;
             if (stepctr==0){
                 i++;
@@ -234,7 +265,7 @@ void MainWindow::on_ButtonFindSol_clicked()
                 if(i==j) err[j]=startstep+((stepctr+1))*step;
             }
 
-            Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,erroutlier);
+            Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
             stepctr=(stepctr+1)%nstep;
             if (stepctr==0){
                 i++;
@@ -280,7 +311,7 @@ void MainWindow::on_ButtonStartParam_clicked()
         ui->ErrSpinBox_5->setValue(0.1);
     }
 
-    Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,erroutlier);
+    Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
     R->DrawRobot(rpos[0],rpos[1],rpos[2]);
     repaint();
     if (timeinfo){
@@ -380,7 +411,7 @@ void MainWindow::on_TSlider_valueChanged(int value)
     t=double(value);
 }
 
-void MainWindow::on_OutlierSpinBox_valueChanged(double arg1)
+void MainWindow::on_errorOutlierSpinBox_valueChanged(double arg1)
 {
     erroutlier = arg1;
 }
@@ -403,3 +434,7 @@ void MainWindow::delay()
 }
 
 
+void MainWindow::on_probsensorisfalseSpinBox_valueChanged(double arg1)
+{
+    probsensorfalse = arg1;
+}

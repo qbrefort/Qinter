@@ -45,12 +45,13 @@ private slots:
     void on_EpsilonSpinBox_valueChanged(double arg1);
     void on_checkBox_toggled(bool checked);
     void on_TSlider_valueChanged(int value);
-    void on_OutlierSpinBox_valueChanged(double arg1);
+    void on_errorOutlierSpinBox_valueChanged(double arg1);
     void on_Tplot_clicked();
     void delay();
     void on_ButtonGONME_clicked();
     void on_Tplot_2_clicked();
     void on_BeaconSpinBox_valueChanged(int arg1);
+    void on_probsensorisfalseSpinBox_valueChanged(double arg1);
 };
 
 

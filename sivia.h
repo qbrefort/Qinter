@@ -17,7 +17,7 @@ public:
      * R:   where to draw the boxes.
      * epsilon: precision downto which boxes are bisected.
      */
-    Sivia(repere& R,IntervalVector &iinside,double *rpos, int Qinter,int nbeacon,int &isinside, int &Sperhaps, double *err,double epsilon, double erroutlier);
+    Sivia(repere& R,IntervalVector &iinside,double *rpos, int Qinter,int nbeacon,int &isinside, int &Sperhaps, double *err,double epsilon,int *outlier, double erroutlier);
 
     /*
      * Contract "box" with "c" and draw the trace (i.e., the difference between box and c(box))
