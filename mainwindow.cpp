@@ -9,7 +9,7 @@
 
 #include <QElapsedTimer>
 vector<double> u,xv,yv,thetav,xc,yc,errpos;
-IntervalVector iinside(2);
+double rposfound[2];
 double t;
 int timeinfo=1;
 double xmin=-25,xmax=25,ymin=-25,ymax=25;
@@ -19,10 +19,10 @@ int outlier[100];
 double Qinter;
 int nbeacon;
 int nboutlier;
-int probsensorfalse=10;
+int probsensorfalse;
 int isinside=0;
 int Sperhaps=0;
-double rpos[3]={3,-5,0};
+double rpos[3];
 repere *R;
 
 double MainWindow::sign(double a){
@@ -149,8 +149,8 @@ void MainWindow::Simu(int method){
 
 void MainWindow::repaint()
 {
-    R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+
+    //Sivia sivia(*R,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
     RobotTraj();
     uint cpt=0;
     for(double i=0;i<6500-111;i=i+10){
@@ -158,17 +158,18 @@ void MainWindow::repaint()
         cpt++;
     }
     R->DrawRobot(rpos[0],rpos[1],rpos[2]);
-    double xins=iinside[0].mid();
-    double yins=iinside[1].mid();
+    double xins=rposfound[0];
+    double yins=rposfound[1];
     R->DrawRobot2(xins,yins,rpos[2]);
     errpos.resize(cpt);
     errpos.push_back(sqrt(pow(xins-rpos[0],2)+pow(yins-rpos[1],2)));
+    //cout<<"xins= "<<xins<<endl; cout<<"yins= "<<yins<<endl;
     R->Save("paving");
 
 }
 
 void MainWindow::on_ButtonGONME_clicked()
-{
+{   cout<<"click"<<endl;
     QElapsedTimer tgonme;
     tgonme.start();
     RobotTraj();
@@ -188,25 +189,20 @@ void MainWindow::on_ButtonGONME_clicked()
     ui->ErrSpinBox_4->setValue(err[3]);
     ui->ErrSpinBox_5->setValue(err[4]);
 
-
-
-
+    //epsilon<0.01 check is just to stop the algorithm when it doesnt find a solution to not freeze the window
     while(isinside!=1 && epsilon>0.01){
         if(Sperhaps==0){
             Qinter--;
             ui->InterSpinBox->setValue(Qinter);
-            Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+            Sivia sivia(*R,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
         }
         if(Sperhaps==1){
             epsilon/=2;
+            Sivia sivia(*R,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
             ui->EpsilonSpinBox->setValue(epsilon);
-            Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
-        }
-        if(ui->StopSimu->isDown()) {
-            break;
         }
     }
-
+    //epsilon/=2;
     repaint();
 
     if (timeinfo){
@@ -229,7 +225,7 @@ void MainWindow::on_ButtonFindSol_clicked()
        err[i] = 0.00;
     }
 
-    Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+    Sivia sivia(*R,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
     uint i=0;
     //double startstep=0.05+floor(10*epsilon)/10-floor(10*epsilon)/20;
     double startstep=1;
@@ -247,7 +243,7 @@ void MainWindow::on_ButtonFindSol_clicked()
                 if(i==j) err[j]=startstep-((stepctr+1))*step;
             }
 
-            Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+            Sivia sivia(*R,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
             stepctr=(stepctr+1)%nstep;
             if (stepctr==0){
                 i++;
@@ -265,7 +261,7 @@ void MainWindow::on_ButtonFindSol_clicked()
                 if(i==j) err[j]=startstep+((stepctr+1))*step;
             }
 
-            Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+            Sivia sivia(*R,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
             stepctr=(stepctr+1)%nstep;
             if (stepctr==0){
                 i++;
@@ -303,15 +299,7 @@ void MainWindow::on_ButtonStartParam_clicked()
     timer.start();
     RobotTraj();
     Init();
-    if(Qinter!=5){
-        ui->ErrSpinBox_1->setValue(0.1);
-        ui->ErrSpinBox_2->setValue(0.1);
-        ui->ErrSpinBox_3->setValue(0.3);
-        ui->ErrSpinBox_4->setValue(0.2);
-        ui->ErrSpinBox_5->setValue(0.1);
-    }
-
-    Sivia sivia(*R,iinside,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+    Sivia sivia(*R,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
     R->DrawRobot(rpos[0],rpos[1],rpos[2]);
     repaint();
     if (timeinfo){

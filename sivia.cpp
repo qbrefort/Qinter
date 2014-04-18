@@ -3,7 +3,9 @@
 
 #include <stdlib.h>
 
-void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& iinside,int isctcinside,int& isinside, const QColor & pencolor, const QColor & brushcolor) {
+vector<IntervalVector> vin;
+
+void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside,int isctcinside,int& isinside,int& nbox, const QColor & pencolor, const QColor & brushcolor) {
     IntervalVector X0= X;       // get a copy
     try {
         c.contract(X);
@@ -11,10 +13,13 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& iinside,
         IntervalVector* rest;
         int n=X0.diff(X,rest); // calculate the set difference
         for (int i=0; i<n; i++) {     // display the boxes
-            R.DrawBox(rest[i][0].lb(),rest[i][0].ub(), rest[i][1].lb(),rest[i][1].ub(),QPen(pencolor),QBrush(brushcolor));
+            R.DrawBox(rest[i][0].lb(),rest[i][0].ub(), rest[i][1].lb(),rest[i][1].ub(),QPen(pencolor),QBrush(brushcolor));          
             if (isctcinside==1) {
+                viinside = rest[i];
+                vin.push_back(viinside);
+                cout<<viinside<<endl;
+                nbox++;
                 isinside=1;
-                iinside=rest[i].mid();
             }
         }
         delete[] rest;
@@ -23,7 +28,7 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& iinside,
     }
 }
 
-Sivia::Sivia(repere& R,IntervalVector& iinside,double *rpos,int Qinter,int nbeacon,int &isinside,int &Sperhaps,double *err, double epsilon,int *outlier, double erroutlier) : R(R) {
+Sivia::Sivia(repere& R,double* rposfound,double *rpos,int Qinter,int nbeacon,int &isinside,int &Sperhaps,double *err, double epsilon,int *outlier, double erroutlier) : R(R) {
 
     //min g(x)=sum(err[i])
     //all my constraints
@@ -83,10 +88,13 @@ Sivia::Sivia(repere& R,IntervalVector& iinside,double *rpos,int Qinter,int nbeac
     double re=0.5;
     int maxq = nbeacon; //nb of contractors
     int ctcq = maxq - Qinter + 1; //nb for q-relaxed function of Ibex
+    int ninbox = 0;
 
     CtcQInter inside(vec_in,ctcq);
     CtcQInter outside(vec_out,Qinter);
     IntervalVector box(2, Interval(-25,25));
+    IntervalVector viinside(2);
+    //vin.resize(4);
 
     LargestFirst lf;
     stack<IntervalVector> s;
@@ -94,12 +102,11 @@ Sivia::Sivia(repere& R,IntervalVector& iinside,double *rpos,int Qinter,int nbeac
     Sperhaps=0;
     while (!s.empty()) {
         IntervalVector box=s.top();
-
         s.pop();
-        contract_and_draw(inside,box,iinside,1,isinside,Qt::magenta,Qt::red);
+        contract_and_draw(inside,box,viinside,1,isinside,ninbox,Qt::magenta,Qt::red);
         if (box.is_empty()) { continue; }
 
-        contract_and_draw(outside,box,iinside,0,isinside,Qt::darkBlue,Qt::cyan);
+        contract_and_draw(outside,box,viinside,0,isinside,ninbox,Qt::darkBlue,Qt::cyan);
         if (box.is_empty()) { continue; }
 
         if (box.max_diam()<epsilon) {
@@ -111,10 +118,30 @@ Sivia::Sivia(repere& R,IntervalVector& iinside,double *rpos,int Qinter,int nbeac
             s.push(boxes.second);
         }
     }
+    double tx[ninbox],ty[ninbox];
+    for(int i=0;i<ninbox;i++){
+        IntervalVector cur = (vin.back());
+        Interval xcur=cur[0];
+        Interval ycur=cur[1];
+        tx[i]=xcur.mid();
+        ty[i]=ycur.mid();
+        vin.pop_back();
+    }
+    double xin=0,yin=0;
+    for(int i=0;i<ninbox;i++){
+        xin += tx[i];
+        yin +=ty[i];
+    }
+    cout<<ninbox<<endl;
+    xin/=double(ninbox);
+    yin/=double(ninbox);
+
+    rposfound[0] = xin;
+    rposfound[1] = yin;
     for(int i=0;i<n;i++)
         R.DrawEllipse(x[i],y[i],re,QPen(Qt::black),QBrush(Qt::NoBrush));
 
-
+    vin.clear();
     vec_out.clear();
     vec_in.clear();
     f.clear();
