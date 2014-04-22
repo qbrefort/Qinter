@@ -16,7 +16,7 @@ double xmin=-25,xmax=25,ymin=-25,ymax=25;
 double epsilon,erroutlier;
 double err[100];
 int outlier[100];
-double Qinter;
+int Qinter;
 int nbeacon;
 int nboutlier;
 int probsensorfalse;
@@ -41,6 +41,7 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
+// Window Initialization
 void MainWindow::Init() {
     R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
     epsilon=ui->EpsilonSpinBox->value();
@@ -48,10 +49,10 @@ void MainWindow::Init() {
     probsensorfalse=ui->probsensorisfalseSpinBox->value();
     erroutlier = ui->errorOutlierSpinBox->value();
     nbeacon = ui->BeaconSpinBox->value();
-    nboutlier=0;
     for (int i=0;i<100;i++) err[i]=0.2;
 }
 
+// Generates the trajectory of the robot. Called only once in initialization of simulation
 void MainWindow::GenTraj(){
     // 8 curve
     int nb_step=6500;
@@ -60,7 +61,7 @@ void MainWindow::GenTraj(){
     double dt=0.02;
     double w=0.05;
     double tt=0;
-    for(uint i= 1; i < nb_step; i++){
+    for(int i= 1; i < nb_step; i++){
         tt = tt+dt;
         u[i-1]= 0.1*sign(sin(w*tt));
         yv[i] = yv[i-1] + dt*sin(thetav[i-1]);
@@ -69,13 +70,17 @@ void MainWindow::GenTraj(){
     }
 }
 
+// Update the robot current position with time t
 void MainWindow::RobotTraj(){
     rpos[0]=xv[t];
     rpos[1]=yv[t];
     rpos[2]=thetav[t];
 }
 
+// Launch a simulation given the method, creates a log file and an info window at the end
 void MainWindow::Simu(int method){
+    int errgonme=0;
+    nboutlier = 0;
     errpos.clear();
     ofstream myfile;
     myfile.open ("log_simu.txt");
@@ -85,7 +90,6 @@ void MainWindow::Simu(int method){
     ui->checkBox->setChecked(false);
     QString vt = "";
     QElapsedTimer tsimu;
-    nboutlier = 0;
     for (int i=0;i<nbeacon;i++){
         if((rand() % 100) <= probsensorfalse){
             outlier[i]=1;
@@ -99,25 +103,26 @@ void MainWindow::Simu(int method){
 
 
     tsimu.start();
+    int cpt=0;
     for(double i=0;i<6500;i=i+200){
         QElapsedTimer tcur;
         QString vtcur = "";
         tcur.start();
         t=i;
-        if(method==1)
-            on_ButtonFindSol_clicked();
-        if (method==2)
-            on_ButtonGONME_clicked();
+        if(method==1)   on_ButtonFindSol_clicked();
+        if (method==2)  on_ButtonGONME_clicked();
+        if ((nbeacon-Qinter)!=nboutlier)    errgonme++;
         ui->TSlider->setValue(t);
         Zoom();
         delay();
         vtcur = QString::number(tcur.elapsed());
         vt.append(vtcur);vt.append("ms ; ");
         myfile << vtcur.toUtf8().constData();myfile << "\n";
-        if(ui->StopSimu->isDown()) {
-            break;
-        }
+        if(ui->StopSimu->isDown())  break;
+        cpt++;
     }
+    double errpercoutliergonme = double(errgonme)/double(cpt)*100;
+    cout<<"errgonme"<<errpercoutliergonme<<endl;
     myfile.close();
     QString mess = "Execution time : ";
     double exec = tsimu.elapsed();
@@ -142,15 +147,14 @@ void MainWindow::Simu(int method){
     mess.append(QString::number(cerpos));mess.append("\n");//mess.append(" variance (pixel)");
     mess.append(QString::number(mean));mess.append("\n");//mess.append(" average error (pixel)\n");
     mess.append(QString::number(exec));mess.append("\n");
-
+    mess.append(QString::number(errpercoutliergonme));mess.append("\n");
 
     QMessageBox::information(this,"End of Simulation",mess);
 }
 
+// Update current window
 void MainWindow::repaint()
 {
-
-    //Sivia sivia(*R,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
     RobotTraj();
     uint cpt=0;
     for(double i=0;i<6500-111;i=i+10){
@@ -163,13 +167,13 @@ void MainWindow::repaint()
     R->DrawRobot2(xins,yins,rpos[2]);
     errpos.resize(cpt);
     errpos.push_back(sqrt(pow(xins-rpos[0],2)+pow(yins-rpos[1],2)));
-    //cout<<"xins= "<<xins<<endl; cout<<"yins= "<<yins<<endl;
     R->Save("paving");
 
 }
 
+// Call simulation GONME
 void MainWindow::on_ButtonGONME_clicked()
-{   cout<<"click"<<endl;
+{
     QElapsedTimer tgonme;
     tgonme.start();
     RobotTraj();
@@ -213,6 +217,7 @@ void MainWindow::on_ButtonGONME_clicked()
     ui->InterSpinBox->setValue(Qinter);
 }
 
+// Call simulation 'Soft Constraints'
 void MainWindow::on_ButtonFindSol_clicked()
 {
     QElapsedTimer timer;
@@ -292,7 +297,7 @@ void MainWindow::on_ButtonFindSol_clicked()
     }
 }
 
-
+// Call SIVIA with the current parameters on the GUI
 void MainWindow::on_ButtonStartParam_clicked()
 {
     QElapsedTimer timer;
@@ -348,6 +353,9 @@ void MainWindow::on_Zoomplus_clicked()
     xmax /= 2;
     ymin /= 2;
     ymax /= 2;
+
+    R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
+    Sivia sivia(*R,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
     repaint();
 }
 
@@ -358,6 +366,9 @@ void MainWindow::on_Zoomminus_clicked()
     ymin *= 2;
     ymax *= 2;
     repaint();
+    R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
+    Sivia sivia(*R,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+    repaint();
 }
 
 void MainWindow::on_ZoomZone_clicked()
@@ -367,6 +378,9 @@ void MainWindow::on_ZoomZone_clicked()
     ymin = rpos[1]-5;
     ymax = rpos[1]+5;
     repaint();
+    R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
+    Sivia sivia(*R,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+    repaint();
 }
 
 void MainWindow::on_ZoomReset_clicked()
@@ -375,6 +389,9 @@ void MainWindow::on_ZoomReset_clicked()
     xmax = 25;
     ymin = -25;
     ymax = 25;
+    repaint();
+    R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
+    Sivia sivia(*R,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
     repaint();
 }
 
@@ -414,6 +431,7 @@ void MainWindow::on_Tplot_2_clicked()
     Simu(2);
 }
 
+// Create a delay to give the GUI time to plot results
 void MainWindow::delay()
 {
     QTime dieTime= QTime::currentTime().addMSecs(10);

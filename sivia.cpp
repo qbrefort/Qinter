@@ -17,7 +17,6 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside
             if (isctcinside==1) {
                 viinside = rest[i];
                 vin.push_back(viinside);
-                cout<<viinside<<endl;
                 nbox++;
                 isinside=1;
             }
@@ -43,7 +42,8 @@ Sivia::Sivia(repere& R,double* rposfound,double *rpos,int Qinter,int nbeacon,int
     //y1=x1=14;x2=4;y2=-7;x3=7;y3=10;x4=y4=-10;x5=-4;y5=12;x6=0;y6=0;
     //square config
 //    x1=-24;y1=24;x2=-24;y2=-24;x3=24;y3=24;x4=24;y4=-24;x5=y5=0;x6=y6=0;
-    //square + 1 close
+
+    //Create a square pattern of beacon with the 5th in the center, after 6 beacons, their position is generated at random
     if (n>=2){
         x[0]=-24;y[0]=24;x[1]=-24;y[1]=22;
     }
@@ -132,7 +132,6 @@ Sivia::Sivia(repere& R,double* rposfound,double *rpos,int Qinter,int nbeacon,int
         xin += tx[i];
         yin +=ty[i];
     }
-    cout<<ninbox<<endl;
     xin/=double(ninbox);
     yin/=double(ninbox);
 
