@@ -27,15 +27,15 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside
     }
 }
 
-Sivia::Sivia(repere& R,double* rposfound,double *rpos,int Qinter,int nbeacon,int &isinside,int &Sperhaps,double *err, double epsilon,int *outlier, double erroutlier) : R(R) {
+Sivia::Sivia(repere& R,double *x,double *y,double* rposfound,double *rpos,int Qinter,int nbeacon,int &isinside,int &Sperhaps,double *err, double epsilon,int *outlier, double erroutlier) : R(R) {
 
     //min g(x)=sum(err[i])
     //all my constraints
     isinside=0;
     Variable xvar,yvar;
     int n = nbeacon;
-    double *x=new double[n]; // vecteur des abcisses des donnees
-    double *y=new double[n]; // vecteur des ordonnees des donnees
+//    double *x=new double[n]; // vecteur des abcisses des donnees
+//    double *y=new double[n]; // vecteur des ordonnees des donnees
     double *r=new double[n]; // vecteur des rayons
     //r1=9.0;r2=2.0;r3=6.0;r4=6.0;r5=10.0;
     //random config (original config)
@@ -44,27 +44,22 @@ Sivia::Sivia(repere& R,double* rposfound,double *rpos,int Qinter,int nbeacon,int
 //    x1=-24;y1=24;x2=-24;y2=-24;x3=24;y3=24;x4=24;y4=-24;x5=y5=0;x6=y6=0;
 
     //Create a square pattern of beacon with the 5th in the center, after 6 beacons, their position is generated at random
-    if (n>=2){
-        x[0]=-24;y[0]=24;x[1]=-24;y[1]=22;
-    }
-    if (n>=3){
-        x[2]=-24;y[2]=-24;
-    }
-    if (n>=4){
-        x[3]=24;y[3]=24;
-    }
-    if (n>=5){
-        x[4]=24;y[4]=-24;
-    }
-    if (n>=6){
-        x[5]=y[5]=0;
-    }
-    if (n>=7){
-        for(int i=6;i<n;i++){
-            x[i]= 25 - rand() % 50;
-            y[i]= 25 - rand() % 50;
-        }
-    }
+//    if (n>=2){
+//        x[0]=-24;y[0]=24;x[1]=-24;y[1]=22;
+//    }
+//    if (n>=3){
+//        x[2]=-24;y[2]=-24;
+//    }
+//    if (n>=4){
+//        x[3]=24;y[3]=24;
+//    }
+//    if (n>=5){
+//        x[4]=24;y[4]=-24;
+//    }
+//    if (n>=6){
+//        x[5]=y[5]=0;
+//    }
+
     double xr=rpos[0],yr=rpos[1];
 
     for (int i=0;i<n;i++) {

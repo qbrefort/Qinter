@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1004</width>
-    <height>623</height>
+    <width>1013</width>
+    <height>632</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <x>10</x>
       <y>0</y>
       <width>407</width>
-      <height>551</height>
+      <height>571</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -69,7 +69,7 @@
        <item>
         <widget class="QLabel" name="label_Epsilon_2">
          <property name="text">
-          <string>Inliers</string>
+          <string>Inliers (nb_beacon - q)</string>
          </property>
         </widget>
        </item>
@@ -106,7 +106,7 @@
        <item>
         <widget class="QLabel" name="label_Epsilon">
          <property name="text">
-          <string>Accuracy of SIVIA</string>
+          <string>Accuracy of SIVIA (ε)</string>
          </property>
         </widget>
        </item>
@@ -142,43 +142,6 @@
          </property>
          <property name="value">
           <double>0.100000000000000</double>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_9">
-       <item>
-        <widget class="QLabel" name="label_Epsilon_8">
-         <property name="text">
-          <string>nb outliers</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_5">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QLCDNumber" name="nbOutlierlcd">
-         <property name="styleSheet">
-          <string notr="true">QLCDNumber{
-    color: rgb(255, 0, 0);    
-    background-color: rgb(255, 255, 255);
-}</string>
-         </property>
-         <property name="smallDecimalPoint">
-          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -277,6 +240,43 @@
       </layout>
      </item>
      <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_9">
+       <item>
+        <widget class="QLabel" name="label_Epsilon_8">
+         <property name="text">
+          <string>nb outliers</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLCDNumber" name="nbOutlierlcd">
+         <property name="styleSheet">
+          <string notr="true">QLCDNumber{
+    color: rgb(255, 0, 0);    
+    background-color: rgb(255, 255, 255);
+}</string>
+         </property>
+         <property name="smallDecimalPoint">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayout_8">
        <item>
         <widget class="QLabel" name="label_Epsilon_5">
@@ -307,14 +307,14 @@
          <item>
           <widget class="QPushButton" name="ButtonFindSol">
            <property name="text">
-            <string>Automatic Finder</string>
+            <string>Thickness iterator</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="ButtonGONME">
+          <widget class="QPushButton" name="ButtonGOMNE">
            <property name="text">
-            <string>GONME</string>
+            <string>GOMNE</string>
            </property>
           </widget>
          </item>
@@ -512,14 +512,31 @@
       </layout>
      </item>
      <item>
-      <widget class="QCheckBox" name="checkBox">
-       <property name="text">
-        <string>Time info</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout_12">
+       <item>
+        <widget class="QCheckBox" name="checkBox">
+         <property name="text">
+          <string>Time info</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="DrawRobotApproxcheckBox">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="text">
+          <string>Draw Robot approx</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item>
       <widget class="QPushButton" name="StopSimu">
@@ -535,8 +552,8 @@
      <rect>
       <x>430</x>
       <y>0</y>
-      <width>551</width>
-      <height>551</height>
+      <width>571</width>
+      <height>571</height>
      </rect>
     </property>
     <property name="verticalScrollBarPolicy">
@@ -546,16 +563,13 @@
      <enum>Qt::ScrollBarAlwaysOff</enum>
     </property>
    </widget>
-   <zorder>verticalLayoutWidget</zorder>
-   <zorder>graphicsView</zorder>
-   <zorder>probsensorisfalseSpinBox</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1004</width>
+     <width>1013</width>
      <height>25</height>
     </rect>
    </property>

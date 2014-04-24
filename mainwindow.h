@@ -48,10 +48,11 @@ private slots:
     void on_errorOutlierSpinBox_valueChanged(double arg1);
     void on_Tplot_clicked();
     void delay();
-    void on_ButtonGONME_clicked();
+    void on_ButtonGOMNE_clicked();
     void on_Tplot_2_clicked();
     void on_BeaconSpinBox_valueChanged(int arg1);
     void on_probsensorisfalseSpinBox_valueChanged(double arg1);
+    void on_DrawRobotApproxcheckBox_toggled(bool checked);
 };
 
 
