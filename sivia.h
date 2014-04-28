@@ -7,6 +7,12 @@
 using namespace ibex;
 using namespace std;
 
+struct bxyz{
+    double *x;
+    double *y;
+    double *z;
+};
+
 class Sivia {
 public:
 
@@ -17,7 +23,7 @@ public:
      * R:   where to draw the boxes.
      * epsilon: precision downto which boxes are bisected.
      */
-    Sivia(repere& R,double *x,double *y,double *iinside,double *rpos, int Qinter,int nbeacon,int &isinside, int &Sperhaps, double *err,double epsilon,int *outlier, double erroutlier);
+    Sivia(repere& R,struct bxyz mybxy,double *iinside,double *rpos, int Qinter,int nbeacon,int &isinside, int &Sperhaps, double *err,double epsilon,int *outlier, double erroutlier);
 
     /*
      * Contract "box" with "c" and draw the trace (i.e., the difference between box and c(box))

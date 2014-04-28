@@ -8,10 +8,8 @@
 #include <fstream>
 
 #include <QElapsedTimer>
-vector<double> u,xv,yv,thetav,xc,yc,errpos;
-double xb[100];
-double yb[100];
-double rposfound[2];
+vector<double> u,xv,yv,zv,thetav,xc,yc,errpos;
+double rposfound[3];
 double t;
 int timeinfo=1;
 int drawapproxpos=0;
@@ -25,8 +23,10 @@ int nboutlier;
 int probsensorfalse;
 int isinside=0;
 int Sperhaps=0;
-double rpos[3];
+double rpos[4];
 repere *R;
+bxyz mybxyz;
+
 
 double MainWindow::sign(double a){
     if (a >= 0)
@@ -38,6 +38,9 @@ double MainWindow::sign(double a){
 MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
     GenTraj();
+    mybxyz.x = new double[100];
+    mybxyz.y = new double[100];
+    mybxyz.z = new double[100];
 }
 
 MainWindow::~MainWindow() {
@@ -59,8 +62,8 @@ void MainWindow::Init() {
 void MainWindow::GenTraj(){
     // 8 curve
     int nb_step=6500;
-    xv.resize(nb_step); yv.resize(nb_step); thetav.resize(nb_step); u.resize(nb_step);
-    xv[0] = 0; yv[0] = 0; thetav[0]=0;
+    xv.resize(nb_step); yv.resize(nb_step); zv.resize(nb_step); thetav.resize(nb_step); u.resize(nb_step);
+    xv[0] = 0; yv[0] = 0; zv[0] = 0; thetav[0]=0;
     double dt=0.02;
     double w=0.05;
     double tt=0;
@@ -69,6 +72,7 @@ void MainWindow::GenTraj(){
         u[i-1]= 0.1*sign(sin(w*tt));
         yv[i] = yv[i-1] + dt*sin(thetav[i-1]);
         xv[i] = xv[i-1] + dt*cos(thetav[i-1]);
+        zv[i] = zv[i] + dt*cos(t);
         thetav[i] = thetav[i-1] + dt*(u[i-1]);
     }
 }
@@ -77,7 +81,8 @@ void MainWindow::GenTraj(){
 void MainWindow::RobotTraj(){
     rpos[0]=xv[t];
     rpos[1]=yv[t];
-    rpos[2]=thetav[t];
+    rpos[2]=zv[t];
+    rpos[3]=thetav[t];
 }
 
 // Launch a simulation given the method, creates a log file and an info window at the end
@@ -88,8 +93,9 @@ void MainWindow::Simu(int method){
     errpos.clear();
     ui->checkBox->setChecked(false);
     for(int i=0;i<nbeacon;i++){
-        xb[i]= 1*(25 - rand() % 50);
-        yb[i]= 1*(25 - rand() % 50);
+        mybxyz.x[i]= 1*(25 - rand() % 50);
+        mybxyz.y[i]= 1*(25 - rand() % 50);
+        mybxyz.z[i]= (rand() % 100)/1000;
         if((rand() % 100) <= probsensorfalse){
             outlier[i]=1;
             nboutlier++;
@@ -150,7 +156,6 @@ void MainWindow::Simu(int method){
     mess.append(QString::number(mean));mess.append("\n");//mess.append(" average error (pixel)\n");
     mess.append(QString::number(exec));mess.append("\n");
     mess.append(QString::number(errpercoutliergomne));mess.append("\n");
-
     QMessageBox::information(this,"End of Simulation",mess);
 }
 
@@ -163,15 +168,15 @@ void MainWindow::repaint()
         R->DrawLine(xv[i],yv[i],xv[i+10],yv[i+10],QPen(Qt::darkGreen));
         cpt++;
     }
-    R->DrawRobot(rpos[0],rpos[1],rpos[2]);
+    R->DrawRobot(rpos[0],rpos[1],rpos[3]);
     double xins=rposfound[0];
     double yins=rposfound[1];
+    double zins=rposfound[2];
     if (drawapproxpos==1)
-        R->DrawRobot2(xins,yins,rpos[2]);
+        R->DrawRobot2(xins,yins,rpos[3]);
     errpos.resize(cpt);
-    errpos.push_back(sqrt(pow(xins-rpos[0],2)+pow(yins-rpos[1],2)));
+    errpos.push_back(sqrt(pow(xins-rpos[0],2)+pow(yins-rpos[1],2)+pow(zins-rpos[2],2)));
     R->Save("paving");
-
 }
 
 // Call simulation gomne
@@ -201,11 +206,11 @@ void MainWindow::on_ButtonGOMNE_clicked()
         if(Sperhaps==0){
             Qinter--;
             ui->InterSpinBox->setValue(Qinter);
-            Sivia sivia(*R,xb,yb,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+            Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
         }
         if(Sperhaps==1){
             epsilon/=2;
-            Sivia sivia(*R,xb,yb,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+            Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
             ui->EpsilonSpinBox->setValue(epsilon);
         }
     }
@@ -233,7 +238,7 @@ void MainWindow::on_ButtonFindSol_clicked()
        err[i] = 0.00;
     }
 
-    Sivia sivia(*R,xb,yb,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+    Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
     uint i=0;
     //double startstep=0.05+floor(10*epsilon)/10-floor(10*epsilon)/20;
     double startstep=1;
@@ -251,7 +256,7 @@ void MainWindow::on_ButtonFindSol_clicked()
                 if(i==j) err[j]=startstep-((stepctr+1))*step;
             }
 
-            Sivia sivia(*R,xb,yb,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+            Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
             stepctr=(stepctr+1)%nstep;
             if (stepctr==0){
                 i++;
@@ -269,7 +274,7 @@ void MainWindow::on_ButtonFindSol_clicked()
                 if(i==j) err[j]=startstep+((stepctr+1))*step;
             }
 
-            Sivia sivia(*R,xb,yb,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+            Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
             stepctr=(stepctr+1)%nstep;
             if (stepctr==0){
                 i++;
@@ -307,8 +312,8 @@ void MainWindow::on_ButtonStartParam_clicked()
     timer.start();
     RobotTraj();
     Init();
-    Sivia sivia(*R,xb,yb,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
-    R->DrawRobot(rpos[0],rpos[1],rpos[2]);
+    Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+    R->DrawRobot(rpos[0],rpos[1],rpos[3]);
     repaint();
     if (timeinfo){
         QString mess = "Execution time : ";
@@ -358,7 +363,7 @@ void MainWindow::on_Zoomplus_clicked()
     ymax /= 2;
 
     R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,xb,yb,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+    Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
     repaint();
 }
 
@@ -370,7 +375,7 @@ void MainWindow::on_Zoomminus_clicked()
     ymax *= 2;
     repaint();
     R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,xb,yb,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+    Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
     repaint();
 }
 
@@ -382,7 +387,7 @@ void MainWindow::on_ZoomZone_clicked()
     ymax = rpos[1]+5;
     repaint();
     R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,xb,yb,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+    Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
     repaint();
 }
 
@@ -394,7 +399,7 @@ void MainWindow::on_ZoomReset_clicked()
     ymax = 25;
     repaint();
     R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,xb,yb,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+    Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
     repaint();
 }
 

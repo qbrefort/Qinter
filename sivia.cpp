@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 
+
+
 vector<IntervalVector> vin;
 
 void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside,int isctcinside,int& isinside,int& nbox, const QColor & pencolor, const QColor & brushcolor) {
@@ -27,15 +29,16 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside
     }
 }
 
-Sivia::Sivia(repere& R,double *x,double *y,double* rposfound,double *rpos,int Qinter,int nbeacon,int &isinside,int &Sperhaps,double *err, double epsilon,int *outlier, double erroutlier) : R(R) {
+Sivia::Sivia(repere& R,struct bxyz mybxy,double *rposfound,double *rpos,int Qinter,int nbeacon,int &isinside,int &Sperhaps,double *err, double epsilon,int *outlier, double erroutlier) : R(R) {
 
     //min g(x)=sum(err[i])
     //all my constraints
     isinside=0;
-    Variable xvar,yvar;
+    Variable xvar,yvar,zvar;
     int n = nbeacon;
-//    double *x=new double[n]; // vecteur des abcisses des donnees
-//    double *y=new double[n]; // vecteur des ordonnees des donnees
+    double *x=mybxy.x; // vecteur des abcisses des donnees
+    double *y=mybxy.y; // vecteur des ordonnees des donnees
+    double *z=mybxy.z;
     double *r=new double[n]; // vecteur des rayons
     //r1=9.0;r2=2.0;r3=6.0;r4=6.0;r5=10.0;
     //random config (original config)
@@ -60,9 +63,10 @@ Sivia::Sivia(repere& R,double *x,double *y,double* rposfound,double *rpos,int Qi
 //        x[5]=y[5]=0;
 //    }
 
-    double xr=rpos[0],yr=rpos[1];
+    double xr=rpos[0],yr=rpos[1],zr=rpos[2];
 
     for (int i=0;i<n;i++) {
+//        r[i]= sqrt(pow(xr-x[i],2)+pow(yr-y[i],2)+pow(zr-z[i],2));
         r[i]= sqrt(pow(xr-x[i],2)+pow(yr-y[i],2));
         if (outlier[i]==1)
             r[i] *= (1+erroutlier/100);
@@ -70,7 +74,8 @@ Sivia::Sivia(repere& R,double *x,double *y,double* rposfound,double *rpos,int Qi
 
     vector<Function*> f;
     for(int i=0;i<n;i++) {
-        f.push_back(new Function(xvar,yvar,sqrt(sqr(xvar-x[i])+sqr(yvar-y[i]))));
+//        f.push_back(new Function(xvar,yvar,zvar,sqrt(sqr(xvar-x[i])+sqr(yvar-y[i])+sqr(zvar-z[i]))));
+         f.push_back(new Function(xvar,yvar,sqrt(sqr(xvar-x[i])+sqr(yvar-y[i]))));
     }
 
     vector<Ctc*> vec_out;
