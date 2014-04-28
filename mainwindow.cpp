@@ -9,7 +9,6 @@
 
 #include <QElapsedTimer>
 vector<double> u,xv,yv,zv,thetav,xc,yc,errpos;
-double rposfound[3];
 double t;
 int timeinfo=1;
 int drawapproxpos=0;
@@ -23,9 +22,8 @@ int nboutlier;
 int probsensorfalse;
 int isinside=0;
 int Sperhaps=0;
-double rpos[4];
 repere *R;
-bxyz mybxyz;
+sivia_struct *my_struct = new sivia_struct();
 
 
 double MainWindow::sign(double a){
@@ -38,9 +36,9 @@ double MainWindow::sign(double a){
 MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
     GenTraj();
-    mybxyz.x = new double[100];
-    mybxyz.y = new double[100];
-    mybxyz.z = new double[100];
+    my_struct->x = new double[100];
+    my_struct->y = new double[100];
+    my_struct->z = new double[100];
 }
 
 MainWindow::~MainWindow() {
@@ -73,16 +71,17 @@ void MainWindow::GenTraj(){
         yv[i] = yv[i-1] + dt*sin(thetav[i-1]);
         xv[i] = xv[i-1] + dt*cos(thetav[i-1]);
         zv[i] = zv[i] + dt*cos(t);
+        zv[i] = 0;
         thetav[i] = thetav[i-1] + dt*(u[i-1]);
     }
 }
 
 // Update the robot current position with time t
 void MainWindow::RobotTraj(){
-    rpos[0]=xv[t];
-    rpos[1]=yv[t];
-    rpos[2]=zv[t];
-    rpos[3]=thetav[t];
+    my_struct->robot_position[0]=xv[t];
+    my_struct->robot_position[1]=yv[t];
+    my_struct->robot_position[2]=zv[t];
+    my_struct->robot_position[3]=thetav[t];
 }
 
 // Launch a simulation given the method, creates a log file and an info window at the end
@@ -93,9 +92,9 @@ void MainWindow::Simu(int method){
     errpos.clear();
     ui->checkBox->setChecked(false);
     for(int i=0;i<nbeacon;i++){
-        mybxyz.x[i]= 1*(25 - rand() % 50);
-        mybxyz.y[i]= 1*(25 - rand() % 50);
-        mybxyz.z[i]= (rand() % 100)/1000;
+        my_struct->x[i]= 1*(25 - rand() % 50);
+        my_struct->y[i]= 1*(25 - rand() % 50);
+        my_struct->z[i]= (rand() % 100)/1000;
         if((rand() % 100) <= probsensorfalse){
             outlier[i]=1;
             nboutlier++;
@@ -168,14 +167,14 @@ void MainWindow::repaint()
         R->DrawLine(xv[i],yv[i],xv[i+10],yv[i+10],QPen(Qt::darkGreen));
         cpt++;
     }
-    R->DrawRobot(rpos[0],rpos[1],rpos[3]);
-    double xins=rposfound[0];
-    double yins=rposfound[1];
-    double zins=rposfound[2];
+    R->DrawRobot(my_struct->robot_position[0],my_struct->robot_position[1],my_struct->robot_position[3]);
+    double xins=my_struct->robot_position_found[0];
+    double yins=my_struct->robot_position_found[1];
+    double zins=my_struct->robot_position_found[2];
     if (drawapproxpos==1)
-        R->DrawRobot2(xins,yins,rpos[3]);
+        R->DrawRobot2(xins,yins,my_struct->robot_position[3]);
     errpos.resize(cpt);
-    errpos.push_back(sqrt(pow(xins-rpos[0],2)+pow(yins-rpos[1],2)+pow(zins-rpos[2],2)));
+    errpos.push_back(sqrt(pow(xins-my_struct->robot_position[0],2)+pow(yins-my_struct->robot_position[1],2)+pow(zins-my_struct->robot_position[2],2)));
     R->Save("paving");
 }
 
@@ -187,7 +186,7 @@ void MainWindow::on_ButtonGOMNE_clicked()
     RobotTraj();
     Init();
 
-    isinside=0;
+    my_struct->isinside=0;
     Qinter = ui->BeaconSpinBox->value();
     nbeacon = ui->BeaconSpinBox->value();
 
@@ -202,15 +201,15 @@ void MainWindow::on_ButtonGOMNE_clicked()
     ui->ErrSpinBox_5->setValue(err[4]);
 
     //epsilon<0.01 check is just to stop the algorithm when it doesnt find a solution to not freeze the window
-    while(isinside!=1 && epsilon>0.01){
+    while(my_struct->isinside!=1 && epsilon>0.01){
         if(Sperhaps==0){
             Qinter--;
             ui->InterSpinBox->setValue(Qinter);
-            Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+            Sivia sivia(*R,my_struct,Qinter,nbeacon,Sperhaps,err,epsilon,outlier,erroutlier);
         }
         if(Sperhaps==1){
             epsilon/=2;
-            Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+            Sivia sivia(*R,my_struct,Qinter,nbeacon,Sperhaps,err,epsilon,outlier,erroutlier);
             ui->EpsilonSpinBox->setValue(epsilon);
         }
     }
@@ -238,7 +237,7 @@ void MainWindow::on_ButtonFindSol_clicked()
        err[i] = 0.00;
     }
 
-    Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+    Sivia sivia(*R,my_struct,Qinter,nbeacon,Sperhaps,err,epsilon,outlier,erroutlier);
     uint i=0;
     //double startstep=0.05+floor(10*epsilon)/10-floor(10*epsilon)/20;
     double startstep=1;
@@ -256,7 +255,7 @@ void MainWindow::on_ButtonFindSol_clicked()
                 if(i==j) err[j]=startstep-((stepctr+1))*step;
             }
 
-            Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+            Sivia sivia(*R,my_struct,Qinter,nbeacon,Sperhaps,err,epsilon,outlier,erroutlier);
             stepctr=(stepctr+1)%nstep;
             if (stepctr==0){
                 i++;
@@ -274,7 +273,7 @@ void MainWindow::on_ButtonFindSol_clicked()
                 if(i==j) err[j]=startstep+((stepctr+1))*step;
             }
 
-            Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+            Sivia sivia(*R,my_struct,Qinter,nbeacon,Sperhaps,err,epsilon,outlier,erroutlier);
             stepctr=(stepctr+1)%nstep;
             if (stepctr==0){
                 i++;
@@ -312,8 +311,8 @@ void MainWindow::on_ButtonStartParam_clicked()
     timer.start();
     RobotTraj();
     Init();
-    Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
-    R->DrawRobot(rpos[0],rpos[1],rpos[3]);
+    Sivia sivia(*R,my_struct,Qinter,nbeacon,Sperhaps,err,epsilon,outlier,erroutlier);
+    R->DrawRobot(my_struct->robot_position[0],my_struct->robot_position[1],my_struct->robot_position[3]);
     repaint();
     if (timeinfo){
         QString mess = "Execution time : ";
@@ -363,7 +362,7 @@ void MainWindow::on_Zoomplus_clicked()
     ymax /= 2;
 
     R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+    Sivia sivia(*R,my_struct,Qinter,nbeacon,Sperhaps,err,epsilon,outlier,erroutlier);
     repaint();
 }
 
@@ -375,19 +374,19 @@ void MainWindow::on_Zoomminus_clicked()
     ymax *= 2;
     repaint();
     R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+    Sivia sivia(*R,my_struct,Qinter,nbeacon,Sperhaps,err,epsilon,outlier,erroutlier);
     repaint();
 }
 
 void MainWindow::on_ZoomZone_clicked()
 {
-    xmin = rpos[0]-5;
-    xmax = rpos[0]+5;
-    ymin = rpos[1]-5;
-    ymax = rpos[1]+5;
+    xmin = my_struct->robot_position[0]-5;
+    xmax = my_struct->robot_position[0]+5;
+    ymin = my_struct->robot_position[1]-5;
+    ymax = my_struct->robot_position[1]+5;
     repaint();
     R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+    Sivia sivia(*R,my_struct,Qinter,nbeacon,Sperhaps,err,epsilon,outlier,erroutlier);
     repaint();
 }
 
@@ -399,7 +398,7 @@ void MainWindow::on_ZoomReset_clicked()
     ymax = 25;
     repaint();
     R = new repere(this,ui->graphicsView,xmin,xmax,ymin,ymax);
-    Sivia sivia(*R,mybxyz,rposfound,rpos,Qinter,nbeacon,isinside,Sperhaps,err,epsilon,outlier,erroutlier);
+    Sivia sivia(*R,my_struct,Qinter,nbeacon,Sperhaps,err,epsilon,outlier,erroutlier);
     repaint();
 }
 

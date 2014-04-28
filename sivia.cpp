@@ -7,7 +7,7 @@
 
 vector<IntervalVector> vin;
 
-void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside,int isctcinside,int& isinside,int& nbox, const QColor & pencolor, const QColor & brushcolor) {
+void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside,int isctcinside,struct sivia_struct *my_struct,int& nbox, const QColor & pencolor, const QColor & brushcolor) {
     IntervalVector X0= X;       // get a copy
     try {
         c.contract(X);
@@ -20,7 +20,7 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside
                 viinside = rest[i];
                 vin.push_back(viinside);
                 nbox++;
-                isinside=1;
+                my_struct->isinside=1;
             }
         }
         delete[] rest;
@@ -29,16 +29,16 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside
     }
 }
 
-Sivia::Sivia(repere& R,struct bxyz mybxy,double *rposfound,double *rpos,int Qinter,int nbeacon,int &isinside,int &Sperhaps,double *err, double epsilon,int *outlier, double erroutlier) : R(R) {
+Sivia::Sivia(repere& R,struct sivia_struct *my_struct,int Qinter,int nbeacon,int &Sperhaps,double *err, double epsilon,int *outlier, double erroutlier) : R(R) {
 
     //min g(x)=sum(err[i])
     //all my constraints
-    isinside=0;
+    my_struct->isinside=0;
     Variable xvar,yvar,zvar;
     int n = nbeacon;
-    double *x=mybxy.x; // vecteur des abcisses des donnees
-    double *y=mybxy.y; // vecteur des ordonnees des donnees
-    double *z=mybxy.z;
+    double *x=my_struct->x; // vecteur des abcisses des donnees
+    double *y=my_struct->y; // vecteur des ordonnees des donnees
+    double *z=my_struct->z;
     double *r=new double[n]; // vecteur des rayons
     //r1=9.0;r2=2.0;r3=6.0;r4=6.0;r5=10.0;
     //random config (original config)
@@ -63,7 +63,7 @@ Sivia::Sivia(repere& R,struct bxyz mybxy,double *rposfound,double *rpos,int Qint
 //        x[5]=y[5]=0;
 //    }
 
-    double xr=rpos[0],yr=rpos[1],zr=rpos[2];
+    double xr=my_struct->robot_position[0],yr=my_struct->robot_position[1],zr=my_struct->robot_position[2];
 
     for (int i=0;i<n;i++) {
 //        r[i]= sqrt(pow(xr-x[i],2)+pow(yr-y[i],2)+pow(zr-z[i],2));
@@ -103,10 +103,10 @@ Sivia::Sivia(repere& R,struct bxyz mybxy,double *rposfound,double *rpos,int Qint
     while (!s.empty()) {
         IntervalVector box=s.top();
         s.pop();
-        contract_and_draw(inside,box,viinside,1,isinside,ninbox,Qt::magenta,Qt::red);
+        contract_and_draw(inside,box,viinside,1,my_struct,ninbox,Qt::magenta,Qt::red);
         if (box.is_empty()) { continue; }
 
-        contract_and_draw(outside,box,viinside,0,isinside,ninbox,Qt::darkBlue,Qt::cyan);
+        contract_and_draw(outside,box,viinside,0,my_struct,ninbox,Qt::darkBlue,Qt::cyan);
         if (box.is_empty()) { continue; }
 
         if (box.max_diam()<epsilon) {
@@ -135,8 +135,8 @@ Sivia::Sivia(repere& R,struct bxyz mybxy,double *rposfound,double *rpos,int Qint
     xin/=double(ninbox);
     yin/=double(ninbox);
 
-    rposfound[0] = xin;
-    rposfound[1] = yin;
+    my_struct->robot_position_found[0] = xin;
+    my_struct->robot_position_found[1] = yin;
     for(int i=0;i<n;i++)
         R.DrawEllipse(x[i],y[i],re,QPen(Qt::black),QBrush(Qt::NoBrush));
 
