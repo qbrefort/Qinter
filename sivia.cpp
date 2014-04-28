@@ -29,13 +29,13 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside
     }
 }
 
-Sivia::Sivia(repere& R,struct sivia_struct *my_struct,int Qinter,int nbeacon,int &Sperhaps,double *err, double epsilon,int *outlier, double erroutlier) : R(R) {
+Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
 
     //min g(x)=sum(err[i])
     //all my constraints
     my_struct->isinside=0;
     Variable xvar,yvar,zvar;
-    int n = nbeacon;
+    int n = my_struct->nb_beacon;
     double *x=my_struct->x; // vecteur des abcisses des donnees
     double *y=my_struct->y; // vecteur des ordonnees des donnees
     double *z=my_struct->z;
@@ -68,8 +68,8 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct,int Qinter,int nbeacon,int
     for (int i=0;i<n;i++) {
 //        r[i]= sqrt(pow(xr-x[i],2)+pow(yr-y[i],2)+pow(zr-z[i],2));
         r[i]= sqrt(pow(xr-x[i],2)+pow(yr-y[i],2));
-        if (outlier[i]==1)
-            r[i] *= (1+erroutlier/100);
+        if (my_struct->outliers[i]==1)
+            r[i] *= (1+my_struct->erroutlier/100);
     }
 
     vector<Function*> f;
@@ -81,17 +81,17 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct,int Qinter,int nbeacon,int
     vector<Ctc*> vec_out;
     vector<Ctc*> vec_in;
     for(int i=0;i<n;i++) {
-        vec_out.push_back(new CtcIn(*(f[i]),(r[i]+Interval(-1,1)*err[i])));
-        vec_in.push_back(new CtcNotIn(*(f[i]),(r[i]+Interval(-1,1)*err[i])));
+        vec_out.push_back(new CtcIn(*(f[i]),(r[i]+Interval(-1,1)*my_struct->err[i])));
+        vec_in.push_back(new CtcNotIn(*(f[i]),(r[i]+Interval(-1,1)*my_struct->err[i])));
     }
 
     double re=0.5;
-    int maxq = nbeacon; //nb of contractors
-    int ctcq = maxq - Qinter + 1; //nb for q-relaxed function of Ibex
+    int maxq = my_struct->nb_beacon; //nb of contractors
+    int ctcq = maxq - my_struct->q + 1; //nb for q-relaxed function of Ibex
     int ninbox = 0;
 
     CtcQInter inside(vec_in,ctcq);
-    CtcQInter outside(vec_out,Qinter);
+    CtcQInter outside(vec_out,my_struct->q);
     IntervalVector box(2, Interval(-25,25));
     IntervalVector viinside(2);
     //vin.resize(4);
@@ -99,7 +99,7 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct,int Qinter,int nbeacon,int
     LargestFirst lf;
     stack<IntervalVector> s;
     s.push(box);
-    Sperhaps=0;
+    my_struct->in_perhaps=0;
     while (!s.empty()) {
         IntervalVector box=s.top();
         s.pop();
@@ -109,9 +109,9 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct,int Qinter,int nbeacon,int
         contract_and_draw(outside,box,viinside,0,my_struct,ninbox,Qt::darkBlue,Qt::cyan);
         if (box.is_empty()) { continue; }
 
-        if (box.max_diam()<epsilon) {
+        if (box.max_diam()<my_struct->epsilon_sivia) {
             R.DrawBox(box[0].lb(),box[0].ub(),box[1].lb(),box[1].ub(),QPen(Qt::yellow),QBrush(Qt::white));
-            Sperhaps=1;
+            my_struct->in_perhaps=1;
         } else {
             pair<IntervalVector,IntervalVector> boxes=lf.bisect(box);
             s.push(boxes.first);

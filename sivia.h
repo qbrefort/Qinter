@@ -14,6 +14,13 @@ struct sivia_struct{
     double robot_position_found[3];
     double robot_position[4];
     int isinside;
+    int q;
+    int nb_beacon;
+    int in_perhaps;
+    double *err;
+    double epsilon_sivia;
+    int *outliers;
+    double erroutlier;
 };
 
 class Sivia {
@@ -26,7 +33,7 @@ public:
      * R:   where to draw the boxes.
      * epsilon: precision downto which boxes are bisected.
      */
-    Sivia(repere& R,struct sivia_struct *my_struct, int Qinter,int nbeacon, int &Sperhaps, double *err,double epsilon,int *outlier, double erroutlier);
+    Sivia(repere& R,struct sivia_struct *my_struct);
 
     /*
      * Contract "box" with "c" and draw the trace (i.e., the difference between box and c(box))
