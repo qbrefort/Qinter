@@ -15,6 +15,7 @@ int drawapproxpos=0;
 double xmin=-25,xmax=25,ymin=-25,ymax=25;
 int nboutlier;
 int probsensorfalse;
+int step=1;
 repere *R;
 sivia_struct *par = new sivia_struct(); // SIVIA parameters
 
@@ -126,7 +127,7 @@ void MainWindow::Simu(int method){
     QElapsedTimer tsimu;
 
     tsimu.start();
-    int step=1;
+    step=100;
     for(double i=0;i<6500;i=i+step){
         cout<<"entry box :"<<par->box.back()<<endl;
         QElapsedTimer tcur;
@@ -184,6 +185,7 @@ void MainWindow::repaint()
         R->DrawLine(xv[i],yv[i],xv[i+10],yv[i+10],QPen(Qt::darkGreen));
         cpt++;
     }
+    R->DrawArrow(par->robot_position[0],par->robot_position[1],step*par->speedx[par->iteration-step],step*par->speedy[par->iteration-step]);
     R->DrawRobot(par->robot_position[0],par->robot_position[1],par->robot_position[3]);
     double xins=par->robot_position_found[0];
     double yins=par->robot_position_found[1];
@@ -211,9 +213,9 @@ void MainWindow::SLAM(int step){
         }
         double dt = 0.02;
         IntervalVector ivtemp(2);
-        double aprox=0.0;
-        ivtemp[0]=Interval(xmin-aprox,xmax+aprox)+par->speedx[par->iteration];
-        ivtemp[1]=Interval(ymin-aprox,ymax+aprox)+par->speedy[par->iteration];
+        double aprox=0.01+double(sqrt(step)/10);
+        ivtemp[0]=Interval(xmin-aprox,xmax+aprox)+step*par->speedx[par->iteration-step];
+        ivtemp[1]=Interval(ymin-aprox,ymax+aprox)+step*par->speedy[par->iteration-step];
         par->box.push_back(ivtemp);
         //cout<<"ivtemp"<<ivtemp[0]<<";"<<ivtemp[1]<<endl;
     }
