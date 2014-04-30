@@ -13,6 +13,9 @@ struct sivia_struct{
     double *z;
     double robot_position_found[3];
     double robot_position[4];
+    double *theta;
+    double *speedx;
+    double *speedy;
     int isinside;
     int q;
     int nb_beacon;
@@ -21,6 +24,10 @@ struct sivia_struct{
     double epsilon_sivia;
     int *outliers;
     double erroutlier;
+    int iteration;
+    vector<IntervalVector> box;
+    vector<IntervalVector> vin;
+    vector<IntervalVector> vin_prev;
 };
 
 class Sivia {

@@ -5,7 +5,7 @@
 
 
 
-vector<IntervalVector> vin;
+
 
 void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside,int isctcinside,struct sivia_struct *my_struct,int& nbox, const QColor & pencolor, const QColor & brushcolor) {
     IntervalVector X0= X;       // get a copy
@@ -15,10 +15,10 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside
         IntervalVector* rest;
         int n=X0.diff(X,rest); // calculate the set difference
         for (int i=0; i<n; i++) {     // display the boxes
-            R.DrawBox(rest[i][0].lb(),rest[i][0].ub(), rest[i][1].lb(),rest[i][1].ub(),QPen(pencolor),QBrush(brushcolor));          
+            R.DrawBox(rest[i][0].lb(),rest[i][0].ub(), rest[i][1].lb(),rest[i][1].ub(),QPen(pencolor),QBrush(brushcolor));
             if (isctcinside==1) {
                 viinside = rest[i];
-                vin.push_back(viinside);
+                my_struct->vin.push_back(viinside);
                 nbox++;
                 my_struct->isinside=1;
             }
@@ -31,8 +31,6 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside
 
 Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
 
-    //min g(x)=sum(err[i])
-    //all my constraints
     my_struct->isinside=0;
     Variable xvar,yvar,zvar;
     int n = my_struct->nb_beacon;
@@ -90,10 +88,13 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
     int ctcq = maxq - my_struct->q + 1; //nb for q-relaxed function of Ibex
     int ninbox = 0;
 
-    CtcQInter inside(vec_in,ctcq);
-    CtcQInter outside(vec_out,my_struct->q);
-    IntervalVector box(2, Interval(-25,25));
-    IntervalVector viinside(2);
+    CtcQInter insidetmp(vec_in,ctcq);
+    CtcQInter outsidetmp(vec_out,my_struct->q);
+    CtcFixPoint inside(insidetmp);
+    CtcFixPoint outside(outsidetmp);
+    IntervalVector box = my_struct->box.back();
+//    IntervalVector box(3);box[0]=box[1]=Interval(-25,25);box[2]=Interval(0,2);
+    IntervalVector viinside(3);
     //vin.resize(4);
 
     LargestFirst lf;
@@ -118,29 +119,41 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
             s.push(boxes.second);
         }
     }
-    double tx[ninbox],ty[ninbox];
+
+    double tx[ninbox],ty[ninbox],tz[ninbox];
+
+    //cout<<"next"<<ninbox<<endl;
     for(int i=0;i<ninbox;i++){
-        IntervalVector cur = (vin.back());
+        IntervalVector cur = (my_struct->vin.back());
+        my_struct->vin_prev.push_back(cur);
+        //cout<<cur<<endl;
         Interval xcur=cur[0];
         Interval ycur=cur[1];
+        Interval zcur=cur[2];
         tx[i]=xcur.mid();
         ty[i]=ycur.mid();
-        vin.pop_back();
+        tz[i]=zcur.mid();
+        my_struct->vin.pop_back();
     }
-    double xin=0,yin=0;
+
+
+    double xin=0,yin=0,zin=0;
     for(int i=0;i<ninbox;i++){
         xin += tx[i];
-        yin +=ty[i];
+        yin += ty[i];
+        zin += tz[i];
     }
     xin/=double(ninbox);
     yin/=double(ninbox);
+    zin/=double(ninbox);
 
     my_struct->robot_position_found[0] = xin;
     my_struct->robot_position_found[1] = yin;
+    my_struct->robot_position_found[2] = zin;
     for(int i=0;i<n;i++)
         R.DrawEllipse(x[i],y[i],re,QPen(Qt::black),QBrush(Qt::NoBrush));
 
-    vin.clear();
+    my_struct->vin.clear();
     vec_out.clear();
     vec_in.clear();
     f.clear();

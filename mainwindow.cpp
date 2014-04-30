@@ -8,7 +8,7 @@
 #include <fstream>
 
 #include <QElapsedTimer>
-vector<double> u,xv,yv,zv,thetav,xc,yc,errpos;
+vector<double> u,xv,yv,zv,vv,thetav,xc,yc,errpos;
 double t;
 int timeinfo=1;
 int drawapproxpos=0;
@@ -36,10 +36,16 @@ MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainW
     par->err = new double[100];
     par->in_perhaps = 0;
     par->isinside = 0;
+    par->box.resize(1);
 }
 
 MainWindow::~MainWindow() {
     free(R);
+    free(par->x);
+    free(par->y);
+    free(par->z);
+    free(par->outliers);
+    free(par->err);
     free(par);
     delete ui;
 }
@@ -59,8 +65,12 @@ void MainWindow::Init() {
 void MainWindow::GenTraj(){
     // 8 curve
     int nb_step=6500;
-    xv.resize(nb_step); yv.resize(nb_step); zv.resize(nb_step); thetav.resize(nb_step); u.resize(nb_step);
-    xv[0] = 0; yv[0] = 0; zv[0] = 0; thetav[0]=0;
+    par->box.push_back(IntervalVector(2,Interval(-25,25)));
+    par->theta = new double[nb_step];
+    par->speedx = new double[nb_step];
+    par->speedy = new double[nb_step];
+    xv.resize(nb_step); yv.resize(nb_step); zv.resize(nb_step);vv.resize(nb_step); thetav.resize(nb_step); u.resize(nb_step);
+    xv[0] = 0; yv[0] = 0; zv[0] = 0; thetav[0]=0; vv[0]=0;
     double dt=0.02;
     double w=0.05;
     double tt=0;
@@ -69,9 +79,13 @@ void MainWindow::GenTraj(){
         u[i-1]= 0.1*sign(sin(w*tt));
         yv[i] = yv[i-1] + dt*sin(thetav[i-1]);
         xv[i] = xv[i-1] + dt*cos(thetav[i-1]);
-        zv[i] = zv[i] + dt*cos(t);
-        zv[i] = 0;
+        zv[i] =  1+dt*cos(t);
+        vv[i] = sqrt(pow((xv[i]-xv[i-1])/dt,2)+pow((yv[i]-yv[i-1])/dt,2));
+        //zv[i] = 0;
         thetav[i] = thetav[i-1] + dt*(u[i-1]);
+        par->theta[i] = thetav[i];
+        par->speedx[i] = (xv[i]-xv[i-1]);
+        par->speedy[i] = (yv[i]-yv[i-1]);
     }
 }
 
@@ -93,7 +107,7 @@ void MainWindow::Simu(int method){
     for(int i=0;i<par->nb_beacon;i++){
         par->x[i]= 1*(25 - rand() % 50);
         par->y[i]= 1*(25 - rand() % 50);
-        par->z[i]= (rand() % 100)/1000;
+        par->z[i]= 5-i%4;
         if((rand() % 100) <= probsensorfalse){
             par->outliers[i]=1;
             nboutlier++;
@@ -101,6 +115,7 @@ void MainWindow::Simu(int method){
         else{par->outliers[i]=0;}
     }
     ui->nbOutlierlcd->display(nboutlier);
+    par->nb_beacon = ui->BeaconSpinBox->value();
     //Log
     ofstream myfile;
     myfile.open ("log_simu.txt");
@@ -111,16 +126,19 @@ void MainWindow::Simu(int method){
     QElapsedTimer tsimu;
 
     tsimu.start();
-    for(double i=0;i<6500;i=i+200){
+    int step=1;
+    for(double i=0;i<6500;i=i+step){
+        cout<<"entry box :"<<par->box.back()<<endl;
         QElapsedTimer tcur;
         QString vtcur = "";
         tcur.start();
         t=i;
+        par->iteration=t;
         if(method==1)   on_ButtonFindSol_clicked();
-        if (method==2)  on_ButtonGOMNE_clicked();
+        if (method==2)  {on_ButtonGOMNE_clicked();SLAM(step);}
         if ((par->nb_beacon-par->q)!=nboutlier)    errgomne++;
         ui->TSlider->setValue(t);
-        Zoom();
+        Zoom(step);
         delay();
         vtcur = QString::number(tcur.elapsed());
         vt.append(vtcur);vt.append("ms ; ");
@@ -177,6 +195,30 @@ void MainWindow::repaint()
     R->Save("paving");
 }
 
+void MainWindow::SLAM(int step){
+    double xmin=100,xmax=-100,ymin=100,ymax=-100;
+    if(par->iteration!=0){
+        par->box.clear();
+        while(par->vin_prev.empty()==false){
+            Interval xtmp=par->vin_prev.back()[0];
+            Interval ytmp=par->vin_prev.back()[1];
+            //cout<<par->vin_prev.back()[0]<<endl;
+            if(xtmp.lb()<xmin) xmin=xtmp.lb();
+            if(ytmp.lb()<ymin) ymin=ytmp.lb();
+            if(xtmp.ub()>xmax) xmax=xtmp.ub();
+            if(ytmp.ub()>ymax) ymax=ytmp.ub();
+            par->vin_prev.pop_back();
+        }
+        double dt = 0.02;
+        IntervalVector ivtemp(2);
+        double aprox=0.0;
+        ivtemp[0]=Interval(xmin-aprox,xmax+aprox)+par->speedx[par->iteration];
+        ivtemp[1]=Interval(ymin-aprox,ymax+aprox)+par->speedy[par->iteration];
+        par->box.push_back(ivtemp);
+        //cout<<"ivtemp"<<ivtemp[0]<<";"<<ivtemp[1]<<endl;
+    }
+}
+
 // Call simulation gomne
 void MainWindow::on_ButtonGOMNE_clicked()
 {
@@ -212,7 +254,6 @@ void MainWindow::on_ButtonGOMNE_clicked()
             ui->EpsilonSpinBox->setValue(par->epsilon_sivia);
         }
     }
-    //epsilon/=2;
     repaint();
 
     if (timeinfo){
@@ -346,12 +387,12 @@ void MainWindow::on_InterSpinBox_valueChanged(int arg1)
 {
     par->q = arg1;
 }
-void MainWindow::Zoom()
+void MainWindow::Zoom(int step)
 {
-    xmin = xv[t+220]-5;
-    xmax = xv[t+220]+5;
-    ymin = yv[t+220]-5;
-    ymax = yv[t+220]+5;
+    xmin = xv[t+step]-5;
+    xmax = xv[t+step]+5;
+    ymin = yv[t+step]-5;
+    ymax = yv[t+step]+5;
 }
 void MainWindow::on_Zoomplus_clicked()
 {

@@ -19,7 +19,8 @@ public:
     void GenTraj();
     void RobotTraj();
     void Simu(int method);
-    void Zoom();
+    void SLAM(int step);
+    void Zoom(int step);
     double sign(double a);
 
 private:
