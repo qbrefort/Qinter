@@ -14,6 +14,7 @@ struct sivia_struct{
     double robot_position_found[3];
     double robot_position[4];
     double *theta;
+    double *theta_sonar;
     double *speedx;
     double *speedy;
     int isinside;

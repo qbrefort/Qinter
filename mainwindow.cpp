@@ -36,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainW
     par->z = new double[100];
     par->outliers = new int[100];
     par->err = new double[100];
+    par->theta_sonar = new double[100];
     par->in_perhaps = 0;
     par->isinside = 0;
     par->nb_beacon = ui->BeaconSpinBox->value();;
@@ -114,6 +115,7 @@ void MainWindow::Simu(int method){
         par->x[i]= 1*(25 - rand() % 50);
         par->y[i]= 1*(25 - rand() % 50);
         par->z[i]= 5-i%4;
+        par->theta_sonar[i] = rand() % 360;
         if((rand() % 100) <= probsensorfalse){
             if (rand() % 1 ==1)
                 par->outliers[i]=1;
