@@ -12,6 +12,7 @@ vector<double> u,xv,yv,zv,vv,thetav,xc,yc,errpos;
 double t;
 int timeinfo=1;
 int drawapproxpos=0;
+int drawarrow=0;
 double xmin=-25,xmax=25,ymin=-25,ymax=25;
 int nboutlier;
 int probsensorfalse;
@@ -37,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainW
     par->err = new double[100];
     par->in_perhaps = 0;
     par->isinside = 0;
+    par->nb_beacon = ui->BeaconSpinBox->value();;
     par->box.resize(1);
 }
 
@@ -59,6 +61,7 @@ void MainWindow::Init() {
     probsensorfalse=ui->probsensorisfalseSpinBox->value();
     par->erroutlier = ui->errorOutlierSpinBox->value();
     par->nb_beacon = ui->BeaconSpinBox->value();
+
     for (int i=0;i<100;i++) par->err[i]=0.2;
 }
 
@@ -66,7 +69,7 @@ void MainWindow::Init() {
 void MainWindow::GenTraj(){
     // 8 curve
     int nb_step=6500;
-    par->box.push_back(IntervalVector(2,Interval(-25,25)));
+
     par->theta = new double[nb_step];
     par->speedx = new double[nb_step];
     par->speedy = new double[nb_step];
@@ -104,13 +107,17 @@ void MainWindow::Simu(int method){
     int cpt=0;
     nboutlier = 0;
     errpos.clear();
+    par->box.clear();
+    par->box.push_back(IntervalVector(2,Interval(-25,25)));
     ui->checkBox->setChecked(false);
     for(int i=0;i<par->nb_beacon;i++){
         par->x[i]= 1*(25 - rand() % 50);
         par->y[i]= 1*(25 - rand() % 50);
         par->z[i]= 5-i%4;
         if((rand() % 100) <= probsensorfalse){
-            par->outliers[i]=1;
+            if (rand() % 1 ==1)
+                par->outliers[i]=1;
+            else par->outliers[i]=-1;
             nboutlier++;
         }
         else{par->outliers[i]=0;}
@@ -125,18 +132,26 @@ void MainWindow::Simu(int method){
     myfile.open ("log_simu.txt");
     QString vt = "";
     QElapsedTimer tsimu;
-
+    int gomnecpt=0;
     tsimu.start();
-    step=100;
+    step=ui->step_SpinBox->value();
     for(double i=0;i<6500;i=i+step){
-        cout<<"entry box :"<<par->box.back()<<endl;
+        //cout<<"entry box :"<<par->box.back()<<endl;
         QElapsedTimer tcur;
         QString vtcur = "";
         tcur.start();
         t=i;
         par->iteration=t;
         if(method==1)   on_ButtonFindSol_clicked();
-        if (method==2)  {on_ButtonGOMNE_clicked();SLAM(step);}
+        if (method==2)  on_ButtonGOMNE_clicked();
+        if(method==3) {
+            int qtmp=par->q;
+            on_ButtonGOMNE_clicked();
+            SLAM(step);
+            if (par->q==qtmp) gomnecpt++;
+            if (gomnecpt>4) method=4;
+        }
+        if(method==4) GOMNE_fixed_q();
         if ((par->nb_beacon-par->q)!=nboutlier)    errgomne++;
         ui->TSlider->setValue(t);
         Zoom(step);
@@ -185,13 +200,12 @@ void MainWindow::repaint()
         R->DrawLine(xv[i],yv[i],xv[i+10],yv[i+10],QPen(Qt::darkGreen));
         cpt++;
     }
-    R->DrawArrow(par->robot_position[0],par->robot_position[1],step*par->speedx[par->iteration-step],step*par->speedy[par->iteration-step]);
+    if(drawarrow==1)    R->DrawArrow(par->robot_position[0],par->robot_position[1],step*par->speedx[par->iteration-step],step*par->speedy[par->iteration-step]);
     R->DrawRobot(par->robot_position[0],par->robot_position[1],par->robot_position[3]);
     double xins=par->robot_position_found[0];
     double yins=par->robot_position_found[1];
     double zins=par->robot_position_found[2];
-    if (drawapproxpos==1)
-        R->DrawRobot2(xins,yins,par->robot_position[3]);
+    if (drawapproxpos==1)   R->DrawRobot2(xins,yins,par->robot_position[3]);
     errpos.resize(cpt);
     errpos.push_back(sqrt(pow(xins-par->robot_position[0],2)+pow(yins-par->robot_position[1],2)+pow(zins-par->robot_position[2],2)));
     R->Save("paving");
@@ -231,8 +245,9 @@ void MainWindow::on_ButtonGOMNE_clicked()
 
     par->isinside=0;
     par->q = ui->BeaconSpinBox->value();
-    par->nb_beacon = ui->BeaconSpinBox->value();
 
+    par->nb_beacon = ui->BeaconSpinBox->value();
+    cout<<"q"<<par->q<<endl;
     ui->EpsilonSpinBox->setValue(1);
     for (uint i=0;i<100;i++){
        par->err[i] = 0.2;
@@ -249,6 +264,7 @@ void MainWindow::on_ButtonGOMNE_clicked()
             par->q--;
             ui->InterSpinBox->setValue(par->q);
             Sivia sivia(*R,par);
+            cout<<"q--"<<endl;
         }
         if(par->in_perhaps==1){
             par->epsilon_sivia/=2;
@@ -265,7 +281,51 @@ void MainWindow::on_ButtonGOMNE_clicked()
     }
     ui->InterSpinBox->setValue(par->q);
 }
+void MainWindow::GOMNE_fixed_q()
+{
+    QElapsedTimer tgomne;
+    tgomne.start();
+    RobotTraj();
+    Init();
 
+    par->isinside=0;
+
+    par->nb_beacon = ui->BeaconSpinBox->value();
+    cout<<"q"<<par->q<<endl;
+    ui->EpsilonSpinBox->setValue(1);
+    for (uint i=0;i<100;i++){
+       par->err[i] = 0.2;
+    }
+    ui->ErrSpinBox_1->setValue(par->err[0]);
+    ui->ErrSpinBox_2->setValue(par->err[1]);
+    ui->ErrSpinBox_3->setValue(par->err[2]);
+    ui->ErrSpinBox_4->setValue(par->err[3]);
+    ui->ErrSpinBox_5->setValue(par->err[4]);
+
+    //epsilon<0.01 check is just to stop the algorithm when it doesnt find a solution to not freeze the window
+    while(par->isinside!=1 && par->epsilon_sivia>0.01){
+        if(par->in_perhaps==0){
+            par->q--;
+            ui->InterSpinBox->setValue(par->q);
+            Sivia sivia(*R,par);
+            cout<<"q--"<<endl;
+        }
+        if(par->in_perhaps==1){
+            par->epsilon_sivia/=2;
+            Sivia sivia(*R,par);
+            ui->EpsilonSpinBox->setValue(par->epsilon_sivia);
+        }
+    }
+    SLAM(step);
+    repaint();
+
+    if (timeinfo){
+        QString mess = "Execution time : ";
+        mess.append(QString::number(tgomne.elapsed()));mess.append(" ms");
+        QMessageBox::information(this,"Info",mess);
+    }
+    ui->InterSpinBox->setValue(par->q);
+}
 // Call simulation 'Soft Constraints'
 void MainWindow::on_ButtonFindSol_clicked()
 {
@@ -273,28 +333,28 @@ void MainWindow::on_ButtonFindSol_clicked()
     timer.start();
     RobotTraj();
     Init();
+    ui->EpsilonSpinBox->setValue(0.5);
     ui->InterSpinBox->setValue(par->nb_beacon);
 
     for (uint i=0;i<(sizeof(par->err)/sizeof(*par->err));i++){
        par->err[i] = 0.00;
     }
-
     Sivia sivia(*R,par);
     uint i=0;
     //double startstep=0.05+floor(10*par->epsilon_sivia)/10-floor(10*par->epsilon_sivia)/20;
     double startstep=1;
-    double step = 0.5*(1+par->erroutlier/10);
+    double pas = 0.5*(1+par->erroutlier/10);
     int nstep = 2;
     int stepctr=0;
 
-    while(step>0.05){
+    while(pas>0.05){
         int forw=0;
         int back=0;
 
         while(par->isinside==1){
             for (uint j=0;j<par->nb_beacon;j++){
                 par->err[j]=startstep;
-                if(i==j) par->err[j]=startstep-((stepctr+1))*step;
+                if(i==j) par->err[j]=startstep-((stepctr+1))*pas;
             }
 
             Sivia sivia(*R,par);
@@ -302,7 +362,7 @@ void MainWindow::on_ButtonFindSol_clicked()
             if (stepctr==0){
                 i++;
                 i = i % par->nb_beacon;
-                if(i==0)    startstep=startstep-step;
+                if(i==0)    startstep=startstep-pas;
             }
             back++;
         }
@@ -312,7 +372,7 @@ void MainWindow::on_ButtonFindSol_clicked()
 
             for (uint j=0;j<par->nb_beacon;j++){
                 par->err[j]=startstep;
-                if(i==j) par->err[j]=startstep+((stepctr+1))*step;
+                if(i==j) par->err[j]=startstep+((stepctr+1))*pas;
             }
 
             Sivia sivia(*R,par);
@@ -320,7 +380,7 @@ void MainWindow::on_ButtonFindSol_clicked()
             if (stepctr==0){
                 i++;
                 i = i % par->nb_beacon;
-                if(i==0)    startstep=startstep+step;
+                if(i==0)    startstep=startstep+pas;
             }
             forw++;
         }
@@ -329,7 +389,8 @@ void MainWindow::on_ButtonFindSol_clicked()
             startstep/=0.5;
         else
             startstep*=0.5;
-        step/=2;
+        cout<<"pas "<<pas<<endl;
+        pas/=2;
 
     }
     ui->ErrSpinBox_1->setValue(par->err[0]);
@@ -472,14 +533,17 @@ void MainWindow::on_errorOutlierSpinBox_valueChanged(double arg1)
 
 void MainWindow::on_Tplot_clicked()
 {
-    Simu(1);
+    drawarrow=0;Simu(1);
 }
 
 void MainWindow::on_Tplot_2_clicked()
 {
-    Simu(2);
+    drawarrow=0;Simu(2);
 }
-
+void MainWindow::on_ButtonGOMNE_SLAM_clicked()
+{
+   drawarrow=1;Simu(3);
+}
 // Create a delay to give the GUI time to plot results
 void MainWindow::delay()
 {
@@ -487,7 +551,6 @@ void MainWindow::delay()
     while( QTime::currentTime() < dieTime )
     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 }
-
 
 void MainWindow::on_probsensorisfalseSpinBox_valueChanged(double arg1)
 {
@@ -500,4 +563,9 @@ void MainWindow::on_DrawRobotApproxcheckBox_toggled(bool checked)
         drawapproxpos=1;
     else
         drawapproxpos=0;
+}
+
+void MainWindow::on_step_SpinBox_valueChanged(double arg1)
+{
+    step = arg1;
 }

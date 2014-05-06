@@ -4,9 +4,6 @@
 #include <stdlib.h>
 
 
-
-
-
 void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside,int isctcinside,struct sivia_struct *my_struct,int& nbox, const QColor & pencolor, const QColor & brushcolor) {
     IntervalVector X0= X;       // get a copy
     try {
@@ -66,8 +63,8 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
     for (int i=0;i<n;i++) {
 //        r[i]= sqrt(pow(xr-x[i],2)+pow(yr-y[i],2)+pow(zr-z[i],2));
         r[i]= sqrt(pow(xr-x[i],2)+pow(yr-y[i],2));
-        if (my_struct->outliers[i]==1)
-            r[i] *= (1+my_struct->erroutlier/100);
+        if (my_struct->outliers[i]!=0)
+            r[i] *= (1+my_struct->outliers[i]*my_struct->erroutlier/100);
     }
 
     vector<Function*> f;

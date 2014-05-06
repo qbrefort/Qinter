@@ -20,6 +20,7 @@ public:
     void RobotTraj();
     void Simu(int method);
     void SLAM(int step);
+    void GOMNE_fixed_q();
     void Zoom(int step);
     double sign(double a);
 
@@ -54,6 +55,8 @@ private slots:
     void on_BeaconSpinBox_valueChanged(int arg1);
     void on_probsensorisfalseSpinBox_valueChanged(double arg1);
     void on_DrawRobotApproxcheckBox_toggled(bool checked);
+    void on_ButtonGOMNE_SLAM_clicked();
+    void on_step_SpinBox_valueChanged(double arg1);
 };
 
 
