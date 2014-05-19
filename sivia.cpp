@@ -30,7 +30,7 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside
 Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
 
     my_struct->isinside=0;
-    Variable xvar,yvar,zvar;
+    Variable xvar,yvar,zvar,tvar;
     int n = my_struct->nb_beacon;
     double *x=my_struct->x; // vecteur des abcisses des donnees
     double *y=my_struct->y; // vecteur des ordonnees des donnees
@@ -69,56 +69,59 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
     }
 
     vector<Function*> f;
-        vector<Function*> theta_1;
-        vector<Function*> theta_2;
-        double th1[n];
-        double th2[n];
-        for (int i=0;i<n;i++){
-            th1[i] = my_struct->theta_sonar[i];
-            th2[i] = th1[i] + 20;
-        }
-        for(int i=0;i<n;i++) {
-    //        f.push_back(new Function(xvar,yvar,zvar,sqrt(sqr(xvar-x[i])+sqr(yvar-y[i])+sqr(zvar-z[i]))));
-             f.push_back(new Function(xvar,yvar,sqrt(sqr(xvar-x[i])+sqr(yvar-y[i]))));
-             theta_1.push_back(new Function(xvar,yvar,yvar-y[i]-((r[i]*sin(th1[i])-y[i])/(r[i]*cos(th1[i])-x[i]))*(xvar-x[i])));
-             theta_2.push_back(new Function(xvar,yvar,yvar-y[i]-((r[i]*sin(th2[i])-y[i])/(r[i]*cos(th2[i])-x[i]))*(xvar-x[i])));
-        }
+    vector<Function*> fp;
+    vector<Function*> theta_1;
+    vector<Function*> theta_2;
+    double th1[n];
+    double th2[n];
+    for (int i=0;i<n;i++){
+        th1[i] = my_struct->theta_sonar[i];
+        th2[i] = th1[i] + 20;
+    }
 
-        vector<Ctc*> vec_out;
-        vector<Ctc*> vec_in;
-        CtcNotIn* intemp1,*intemp2;
-        CtcIn* outtemp1,*outtemp2;
-        for(int i=0;i<n;i++) {
+    for(int i=0;i<n;i++) {
+//        f.push_back(new Function(xvar,yvar,zvar,sqrt(sqr(xvar-x[i])+sqr(yvar-y[i])+sqr(zvar-z[i]))));
+        f.push_back(new Function(xvar,yvar,sqrt(sqr(xvar-Interval(x[i]-my_struct->beacon_interval,x[i]+my_struct->beacon_interval))
+                                                +sqr(yvar-Interval(y[i]-my_struct->beacon_interval,y[i]+my_struct->beacon_interval)))));
+         fp.push_back(new Function(xvar,yvar,tvar,sqrt(sqr(xvar-x[i])+sqr(yvar-y[i]))));
+         theta_1.push_back(new Function(xvar,yvar,yvar-y[i]-((r[i]*sin(th1[i])-y[i])/(r[i]*cos(th1[i])-x[i]))*(xvar-x[i])));
+         theta_2.push_back(new Function(xvar,yvar,yvar-y[i]-((r[i]*sin(th2[i])-y[i])/(r[i]*cos(th2[i])-x[i]))*(xvar-x[i])));
+    }
 
-            if (cos(th1[i])>0){
-                outtemp1 = (new CtcIn(*(theta_1[i]),Interval(0,100)));
-                intemp1 = (new CtcNotIn(*(theta_1[i]),Interval(0,100)));
-            }
-            else{
-                outtemp1 = (new CtcIn(*(theta_1[i]),Interval(-100,0)));
-                intemp1 = (new CtcNotIn(*(theta_1[i]),Interval(-100,0)));
-            }
-            if (cos(th2[i])>0){
-                outtemp2 = (new CtcIn(*(theta_2[i]),Interval(-100,0)));
-                intemp2 =(new CtcNotIn(*(theta_2[i]),Interval(-100,0)));
-            }
-            else{
-                outtemp2 = (new CtcIn(*(theta_2[i]),Interval(0,100)));
-                intemp2 =(new CtcNotIn(*(theta_2[i]),Interval(0,100)));
-            }
-            CtcIn* outtemp3 = (new CtcIn(*(f[i]),(r[i]+Interval(-1,1)*my_struct->err[i])));
-            CtcNotIn* intemp3 = (new CtcNotIn(*(f[i]),(r[i]+Interval(-1,1)*my_struct->err[i])));
+    vector<Ctc*> vec_out;
+    vector<Ctc*> vec_in;
+    CtcNotIn* intemp1,*intemp2,*intemp3;
+    CtcIn* outtemp1,*outtemp2,*outtemp3;
+//    for(int i=0;i<n;i++) {
 
-
-            vec_out.push_back(new CtcUnion(*outtemp1,*outtemp2,*outtemp3));
-            vec_in.push_back(new CtcCompo(*intemp1,*intemp2,*intemp3));
-            free(intemp1);free(intemp2);free(intemp3);free(outtemp1);free(outtemp2);free(outtemp3);
-        }
-
-//        for(int i=0;i<n;i++) {
-//            vec_out.push_back(new CtcIn(*(f[i]),(r[i]+Interval(-1,1)*my_struct->err[i])));
-//            vec_in.push_back(new CtcNotIn(*(f[i]),(r[i]+Interval(-1,1)*my_struct->err[i])));
+//        if (cos(th1[i])>0){
+//            outtemp1 = (new CtcIn(*(theta_1[i]),Interval(0,100)));
+//            intemp1 = (new CtcNotIn(*(theta_1[i]),Interval(0,100)));
 //        }
+//        else{
+//            outtemp1 = (new CtcIn(*(theta_1[i]),Interval(-100,0)));
+//            intemp1 = (new CtcNotIn(*(theta_1[i]),Interval(-100,0)));
+//        }
+//        if (cos(th2[i])>0){
+//            outtemp2 = (new CtcIn(*(theta_2[i]),Interval(-100,0)));
+//            intemp2 =(new CtcNotIn(*(theta_2[i]),Interval(-100,0)));
+//        }
+//        else{
+//            outtemp2 = (new CtcIn(*(theta_2[i]),Interval(0,100)));
+//            intemp2 =(new CtcNotIn(*(theta_2[i]),Interval(0,100)));
+//        }
+//        outtemp3 = (new CtcIn(*(f[i]),(r[i]+Interval(-1,1)*my_struct->err[i])));
+//        intemp3 = (new CtcNotIn(*(f[i]),(r[i]+Interval(-1,1)*my_struct->err[i])));
+
+//        vec_out.push_back(new CtcUnion(*outtemp1,*outtemp2,*outtemp3));
+//        vec_in.push_back(new CtcCompo(*intemp1,*intemp2,*intemp3));
+//    }
+//    free(intemp1);free(intemp2);free(intemp3);free(outtemp1);free(outtemp2);free(outtemp3);
+//    cout<<"coucou"<<endl;
+    for(int i=0;i<n;i++) {
+        vec_out.push_back(new CtcIn(*(f[i]),(r[i]+Interval(-1,1)*my_struct->err[i])));
+        vec_in.push_back(new CtcNotIn(*(f[i]),(r[i]+Interval(-1,1)*my_struct->err[i])));
+    }
 
     double re=0.5;
     int maxq = my_struct->nb_beacon; //nb of contractors

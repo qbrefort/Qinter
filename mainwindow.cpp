@@ -41,6 +41,7 @@ MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainW
     par->isinside = 0;
     par->nb_beacon = ui->BeaconSpinBox->value();;
     par->box.resize(1);
+    par->beacon_interval = ui->BeaconPosSpinBox->value();
 }
 
 MainWindow::~MainWindow() {
@@ -202,7 +203,8 @@ void MainWindow::repaint()
         R->DrawLine(xv[i],yv[i],xv[i+10],yv[i+10],QPen(Qt::darkGreen));
         cpt++;
     }
-    if(drawarrow==1)    R->DrawArrow(par->robot_position[0],par->robot_position[1],step*par->speedx[par->iteration-step],step*par->speedy[par->iteration-step]);
+    if(drawarrow==1)    R->DrawArrow(par->robot_position[0],par->robot_position[1],
+                                     step*par->speedx[par->iteration-step],step*par->speedy[par->iteration-step]);
     R->DrawRobot(par->robot_position[0],par->robot_position[1],par->robot_position[3]);
     double xins=par->robot_position_found[0];
     double yins=par->robot_position_found[1];
@@ -570,4 +572,9 @@ void MainWindow::on_DrawRobotApproxcheckBox_toggled(bool checked)
 void MainWindow::on_step_SpinBox_valueChanged(double arg1)
 {
     step = arg1;
+}
+
+void MainWindow::on_BeaconPosSpinBox_valueChanged(double arg1)
+{
+    par->beacon_interval = arg1;
 }

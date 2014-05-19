@@ -57,6 +57,7 @@ private slots:
     void on_DrawRobotApproxcheckBox_toggled(bool checked);
     void on_ButtonGOMNE_SLAM_clicked();
     void on_step_SpinBox_valueChanged(double arg1);
+    void on_BeaconPosSpinBox_valueChanged(double arg1);
 };
 
 

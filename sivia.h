@@ -24,6 +24,7 @@ struct sivia_struct{
     double *err;
     double epsilon_sivia;
     int *outliers;
+    double beacon_interval;
     double erroutlier;
     int iteration;
     vector<IntervalVector> box;
