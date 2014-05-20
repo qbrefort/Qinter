@@ -18,7 +18,7 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside
                 my_struct->vin.push_back(viinside);
                 nbox++;
                 my_struct->isinside=1;
-                cout<<viinside<<endl;
+                //cout<<viinside<<endl;
             }
         }
         delete[] rest;
@@ -81,8 +81,8 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
 
     for(int i=0;i<n;i++) {
 //        f.push_back(new Function(xvar,yvar,zvar,sqrt(sqr(xvar-x[i])+sqr(yvar-y[i])+sqr(zvar-z[i]))));
-        f.push_back(new Function(xvar,yvar,sqrt(sqr(xvar-Interval(x[i]-my_struct->beacon_interval,x[i]+my_struct->beacon_interval))
-                                                +sqr(yvar-Interval(y[i]-my_struct->beacon_interval,y[i]+my_struct->beacon_interval)))));
+        f.push_back(new Function(xvar,yvar,sqrt(sqr(xvar-Interval(x[i]-my_struct->beacon_interval*r[i]/100,x[i]+my_struct->beacon_interval*r[i]/100))
+                                                +sqr(yvar-Interval(y[i]-my_struct->beacon_interval*r[i]/100,y[i]+my_struct->beacon_interval*r[i]/100)))));
          fp.push_back(new Function(xvar,yvar,tvar,sqrt(sqr(xvar-x[i])+sqr(yvar-y[i]))));
          theta_1.push_back(new Function(xvar,yvar,yvar-y[i]-((r[i]*sin(th1[i])-y[i])/(r[i]*cos(th1[i])-x[i]))*(xvar-x[i])));
          theta_2.push_back(new Function(xvar,yvar,yvar-y[i]-((r[i]*sin(th2[i])-y[i])/(r[i]*cos(th2[i])-x[i]))*(xvar-x[i])));

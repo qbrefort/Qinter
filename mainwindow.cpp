@@ -17,6 +17,7 @@ double xmin=-25,xmax=25,ymin=-25,ymax=25;
 int nboutlier;
 int probsensorfalse;
 int step=1;
+bool first_simu = false;
 repere *R;
 sivia_struct *par = new sivia_struct(); // SIVIA parameters
 
@@ -105,8 +106,9 @@ void MainWindow::RobotTraj(){
 
 // Launch a simulation given the method, creates a log file and an info window at the end
 void MainWindow::Simu(int method){
+    first_simu = true;
     int errgomne=0;
-    int cpt=0;
+    int cpt=0,cpt2=0;
     nboutlier = 0;
     errpos.clear();
     par->box.clear();
@@ -138,6 +140,8 @@ void MainWindow::Simu(int method){
     int gomnecpt=0;
     tsimu.start();
     step=ui->step_SpinBox->value();
+    for(double i=0;i<6500;i=i+step) cpt2++;
+    errpos.resize(cpt2);
     for(double i=0;i<6500;i=i+step){
         //cout<<"entry box :"<<par->box.back()<<endl;
         QElapsedTimer tcur;
@@ -152,7 +156,7 @@ void MainWindow::Simu(int method){
             on_ButtonGOMNE_clicked();
             SLAM(step);
             if (par->q==qtmp) gomnecpt++;
-            if (gomnecpt>4) method=4;
+            //if (gomnecpt>4) method=4;
         }
         if(method==4) GOMNE_fixed_q();
         if ((par->nb_beacon-par->q)!=nboutlier)    errgomne++;
@@ -180,12 +184,15 @@ void MainWindow::Simu(int method){
         vcerpos.push_back(cerpos);
         errpos.pop_back();
     }
+    cout<<i<<endl;
     double mean= cerpos/i;
     cerpos = 0;
+    int cpt3=0;
     while(!vcerpos.empty()){
         cerpos+=pow(vcerpos.back()-mean,2);
-        vcerpos.pop_back();
+        vcerpos.pop_back();cpt3++;
     }
+    cout<<cpt3<<endl;
     cerpos/=i;
     mess.append(QString::number(cerpos));mess.append("\n");//mess.append(" variance (pixel)");
     mess.append(QString::number(mean));mess.append("\n");//mess.append(" average error (pixel)\n");
@@ -210,8 +217,8 @@ void MainWindow::repaint()
     double yins=par->robot_position_found[1];
     double zins=par->robot_position_found[2];
     if (drawapproxpos==1)   R->DrawRobot2(xins,yins,par->robot_position[3]);
-    errpos.resize(cpt);
-    errpos.push_back(sqrt(pow(xins-par->robot_position[0],2)+pow(yins-par->robot_position[1],2)+pow(zins-par->robot_position[2],2)));
+    double errdist = sqrt(pow(xins-par->robot_position[0],2)+pow(yins-par->robot_position[1],2));
+    if (isnan(errdist)==0)  errpos.push_back(errdist);
     R->Save("paving");
 }
 
@@ -242,6 +249,11 @@ void MainWindow::SLAM(int step){
 // Call simulation gomne
 void MainWindow::on_ButtonGOMNE_clicked()
 {
+    if (first_simu == false){
+        QMessageBox::warning(this,"Abort process",
+        "To run the alogrithm at a given time, first you need to run a simulation.\nYou can stop it before the end by holding the STOP button.\nYour current simulation will end.");
+        Simu(2);
+    }
     QElapsedTimer tgomne;
     tgomne.start();
     RobotTraj();
@@ -251,7 +263,7 @@ void MainWindow::on_ButtonGOMNE_clicked()
     par->q = ui->BeaconSpinBox->value();
 
     par->nb_beacon = ui->BeaconSpinBox->value();
-    cout<<"q"<<par->q<<endl;
+    //cout<<"q"<<par->q<<endl;
     ui->EpsilonSpinBox->setValue(1);
     for (uint i=0;i<100;i++){
        par->err[i] = 0.2;
@@ -268,7 +280,7 @@ void MainWindow::on_ButtonGOMNE_clicked()
             par->q--;
             ui->InterSpinBox->setValue(par->q);
             Sivia sivia(*R,par);
-            cout<<"q--"<<endl;
+            //cout<<"q--"<<endl;
         }
         if(par->in_perhaps==1){
             par->epsilon_sivia/=2;
@@ -333,11 +345,19 @@ void MainWindow::GOMNE_fixed_q()
 // Call simulation 'Soft Constraints'
 void MainWindow::on_ButtonFindSol_clicked()
 {
+    if (first_simu == false){
+        QMessageBox::warning(this,"Abort process",
+        "To run the alogrithm at a given time, first you need to run a simulation.\nYou can stop it before the end by holding the STOP button.\nYour current simulation will end.");
+        Simu(1);
+    }
     QElapsedTimer timer;
     timer.start();
     RobotTraj();
     Init();
     ui->EpsilonSpinBox->setValue(0.5);
+    if(ui->BeaconSpinBox->value()!=5)
+        QMessageBox::warning(this,"Attention","This method only works with 5 beacons. Now running simulation with 5 beacons.\n Press Ok to continue...");
+    ui->BeaconSpinBox->setValue(5);
     ui->InterSpinBox->setValue(par->nb_beacon);
 
     for (uint i=0;i<(sizeof(par->err)/sizeof(*par->err));i++){
@@ -393,7 +413,7 @@ void MainWindow::on_ButtonFindSol_clicked()
             startstep/=0.5;
         else
             startstep*=0.5;
-        cout<<"pas "<<pas<<endl;
+        //cout<<"pas "<<pas<<endl;
         pas/=2;
 
     }

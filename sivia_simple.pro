@@ -6,7 +6,7 @@
 
 QT       += core gui
 
-TARGET = sivia_simple
+TARGET = loc
 TEMPLATE = app
 
 SOURCES += main.cpp\
