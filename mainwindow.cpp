@@ -107,7 +107,7 @@ void MainWindow::RobotTraj(){
 // Launch a simulation given the method, creates a log file and an info window at the end
 void MainWindow::Simu(int method){
     first_simu = true;
-    int errgomne=0;
+    double errgomne=0;
     int cpt=0,cpt2=0;
     nboutlier = 0;
     errpos.clear();
@@ -159,7 +159,7 @@ void MainWindow::Simu(int method){
             //if (gomnecpt>4) method=4;
         }
         if(method==4) GOMNE_fixed_q();
-        if ((par->nb_beacon-par->q)!=nboutlier)    errgomne++;
+        errgomne += fabs(double(par->q-(double(par->nb_beacon) -  double(nboutlier))) / (double(par->nb_beacon) -  double(nboutlier))*100);
         ui->TSlider->setValue(t);
         Zoom(step);
         delay();
@@ -169,7 +169,7 @@ void MainWindow::Simu(int method){
         if(ui->StopSimu->isDown())  break;
         cpt++;
     }
-    double errpercoutliergomne = double(errgomne)/double(cpt)*100;
+    double errpercoutliergomne = double(errgomne)/double(cpt);
     myfile.close();
     QString mess = "Execution time : ";
     double exec = tsimu.elapsed();
@@ -184,15 +184,12 @@ void MainWindow::Simu(int method){
         vcerpos.push_back(cerpos);
         errpos.pop_back();
     }
-    cout<<i<<endl;
     double mean= cerpos/i;
     cerpos = 0;
-    int cpt3=0;
     while(!vcerpos.empty()){
         cerpos+=pow(vcerpos.back()-mean,2);
-        vcerpos.pop_back();cpt3++;
+        vcerpos.pop_back();
     }
-    cout<<cpt3<<endl;
     cerpos/=i;
     mess.append(QString::number(cerpos));mess.append("\n");//mess.append(" variance (pixel)");
     mess.append(QString::number(mean));mess.append("\n");//mess.append(" average error (pixel)\n");
@@ -274,7 +271,7 @@ void MainWindow::on_ButtonGOMNE_clicked()
     ui->ErrSpinBox_4->setValue(par->err[3]);
     ui->ErrSpinBox_5->setValue(par->err[4]);
 
-    //epsilon<0.01 check is just to stop the algorithm when it doesnt find a solution to not freeze the window
+    //epsilon<0.01 check is just to stop the algorithm when it doesnt find a solution to not freeze the window and block the algorithm.
     while(par->isinside!=1 && par->epsilon_sivia>0.01){
         if(par->in_perhaps==0){
             par->q--;
