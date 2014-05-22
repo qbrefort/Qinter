@@ -210,7 +210,7 @@ void MainWindow::Simu(int method){
     QMessageBox::information(this,"End of Simulation",mess);
 }
 
-// Update current window
+// Update current window and update certain parameter for the simulation
 void MainWindow::repaint()
 {
     RobotTraj();
