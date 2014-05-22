@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>940</width>
+    <width>1029</width>
     <height>646</height>
    </rect>
   </property>
@@ -19,8 +19,8 @@
      <rect>
       <x>10</x>
       <y>4</y>
-      <width>311</width>
-      <height>603</height>
+      <width>407</width>
+      <height>634</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -309,6 +309,43 @@
        </item>
        <item>
         <widget class="QLCDNumber" name="nbOutlierlcd">
+         <property name="styleSheet">
+          <string notr="true">QLCDNumber{
+    color: rgb(255, 0, 0);    
+    background-color: rgb(255, 255, 255);
+}</string>
+         </property>
+         <property name="smallDecimalPoint">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_15">
+       <item>
+        <widget class="QLabel" name="label_Epsilon_12">
+         <property name="text">
+          <string>ratio area</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_9">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLCDNumber" name="ratio_area_lcd">
          <property name="styleSheet">
           <string notr="true">QLCDNumber{
     color: rgb(255, 0, 0);    
@@ -649,7 +686,7 @@
    <widget class="QGraphicsView" name="graphicsView">
     <property name="geometry">
      <rect>
-      <x>330</x>
+      <x>420</x>
       <y>0</y>
       <width>601</width>
       <height>601</height>
@@ -668,7 +705,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>940</width>
+     <width>1029</width>
      <height>25</height>
     </rect>
    </property>

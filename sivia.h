@@ -27,9 +27,12 @@ struct sivia_struct{
     double beacon_interval;
     double erroutlier;
     int iteration;
+    double areap;
+    double areain;
     vector<IntervalVector> box;
     vector<IntervalVector> vin;
     vector<IntervalVector> vin_prev;
+    vector<double> ratio_area;
 };
 
 class Sivia {

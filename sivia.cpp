@@ -18,6 +18,7 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside
                 my_struct->vin.push_back(viinside);
                 nbox++;
                 my_struct->isinside=1;
+                my_struct->areain += viinside[0].diam()*viinside[1].diam();
                 //cout<<viinside<<endl;
             }
         }
@@ -29,6 +30,8 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside
 
 Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
 
+    my_struct->areain = 0;
+    my_struct->areap = 0;
     my_struct->isinside=0;
     Variable xvar,yvar,zvar,tvar;
     int n = my_struct->nb_beacon;
@@ -152,6 +155,7 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
 
         if (box.max_diam()<my_struct->epsilon_sivia) {
             R.DrawBox(box[0].lb(),box[0].ub(),box[1].lb(),box[1].ub(),QPen(Qt::yellow),QBrush(Qt::white));
+            my_struct->areap += box[0].diam()*box[1].diam();
             my_struct->in_perhaps=1;
         } else {
             pair<IntervalVector,IntervalVector> boxes=lf.bisect(box);

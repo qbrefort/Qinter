@@ -17,6 +17,7 @@ double xmin=-25,xmax=25,ymin=-25,ymax=25;
 int nboutlier;
 int probsensorfalse;
 int step=1;
+double cantlocalize;
 bool first_simu = false;
 repere *R;
 sivia_struct *par = new sivia_struct(); // SIVIA parameters
@@ -109,6 +110,7 @@ void MainWindow::Simu(int method){
     first_simu = true;
     double errgomne=0;
     int cpt=0,cpt2=0;
+    cantlocalize=0;
     nboutlier = 0;
     errpos.clear();
     par->box.clear();
@@ -141,7 +143,9 @@ void MainWindow::Simu(int method){
     tsimu.start();
     step=ui->step_SpinBox->value();
     for(double i=0;i<6500;i=i+step) cpt2++;
-    errpos.resize(cpt2);
+    par->ratio_area.clear();
+    par->areain=0;
+    par->areap=0;
     for(double i=0;i<6500;i=i+step){
         //cout<<"entry box :"<<par->box.back()<<endl;
         QElapsedTimer tcur;
@@ -176,7 +180,7 @@ void MainWindow::Simu(int method){
     mess.append(QString::number(exec));mess.append(" ms\n");
     mess.append(vt);mess.append(" ms\n");
     double cerpos=0;
-    uint i=0;
+    double i=0;
     vector<double> vcerpos;
     while (!errpos.empty()){
         cerpos+=errpos.back();
@@ -191,9 +195,17 @@ void MainWindow::Simu(int method){
         vcerpos.pop_back();
     }
     cerpos/=i;
+    double area=0;
+    for (size_t ii = 0; ii < par->ratio_area.size(); ii++){  area += par->ratio_area[ii];
+    //cout<<par->ratio_area[ii]<<endl;
+    }
+    area/=par->ratio_area.size();
+    cantlocalize/=cpt;cantlocalize*=100;
+    mess.append(QString::number(area));mess.append("\n");
+    mess.append(QString::number(cantlocalize));mess.append("\n");
     mess.append(QString::number(cerpos));mess.append("\n");//mess.append(" variance (pixel)");
     mess.append(QString::number(mean));mess.append("\n");//mess.append(" average error (pixel)\n");
-    mess.append(QString::number(exec));mess.append("\n");
+    //mess.append(QString::number(exec));mess.append("\n");
     mess.append(QString::number(errpercoutliergomne));mess.append("\n");
     QMessageBox::information(this,"End of Simulation",mess);
 }
@@ -215,7 +227,12 @@ void MainWindow::repaint()
     double zins=par->robot_position_found[2];
     if (drawapproxpos==1)   R->DrawRobot2(xins,yins,par->robot_position[3]);
     double errdist = sqrt(pow(xins-par->robot_position[0],2)+pow(yins-par->robot_position[1],2));
-    if (isnan(errdist)==0)  errpos.push_back(errdist);
+    if (isnan(errdist)==0){
+        errpos.push_back(errdist);
+    }
+    else    cantlocalize++;
+    ui->ratio_area_lcd->display(par->areain/(par->areain+par->areap)*100);
+    par->ratio_area.push_back(par->areain/(par->areap+par->areain)*100);
     R->Save("paving");
 }
 
