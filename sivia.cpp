@@ -21,6 +21,9 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside
                 my_struct->areain += viinside[0].diam()*viinside[1].diam();
                 //cout<<viinside<<endl;
             }
+            if (isctcinside==0) {
+                my_struct->vper.push_back(rest[i]);
+            }
         }
         delete[] rest;
     } catch(EmptyBoxException&) {
@@ -135,14 +138,14 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
     CtcQInter outsidetmp(vec_out,my_struct->q);
     CtcFixPoint inside(insidetmp);
     CtcFixPoint outside(outsidetmp);
-    IntervalVector box = my_struct->box.back();
+    IntervalVector box1 = my_struct->box.back();
 //    IntervalVector box(3);box[0]=box[1]=Interval(-25,25);box[2]=Interval(0,2);
     IntervalVector viinside(3);
     //vin.resize(4);
 
     LargestFirst lf;
     stack<IntervalVector> s;
-    s.push(box);
+    s.push(box1);
     my_struct->in_perhaps=0;
     while (!s.empty()) {
         IntervalVector box=s.top();
@@ -173,13 +176,16 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
         //cout<<cur<<endl;
         Interval xcur=cur[0];
         Interval ycur=cur[1];
-        Interval zcur=cur[2];
         tx[i]=xcur.mid();
         ty[i]=ycur.mid();
-        tz[i]=zcur.mid();
         my_struct->vin.pop_back();
     }
 
+    for(int i=0;i<ninbox;i++){
+        IntervalVector cur = (my_struct->vper.back());
+        my_struct->vin_prev.push_back(cur);
+        my_struct->vper.pop_back();
+    }
 
     double xin=0,yin=0,zin=0;
     for(int i=0;i<ninbox;i++){
@@ -198,6 +204,7 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
         R.DrawEllipse(x[i],y[i],re,QPen(Qt::black),QBrush(Qt::NoBrush));
 
     my_struct->vin.clear();
+    my_struct->vper.clear();
     vec_out.clear();
     vec_in.clear();
     f.clear();

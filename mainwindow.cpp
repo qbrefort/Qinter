@@ -65,7 +65,6 @@ void MainWindow::Init() {
     probsensorfalse=ui->probsensorisfalseSpinBox->value();
     par->erroutlier = ui->errorOutlierSpinBox->value();
     par->nb_beacon = ui->BeaconSpinBox->value();
-
     for (int i=0;i<100;i++) par->err[i]=0.2;
 }
 
@@ -158,6 +157,7 @@ void MainWindow::Simu(int method){
         if(method==3) {
             int qtmp=par->q;
             on_ButtonGOMNE_clicked();
+            step=ui->step_SpinBox->value();
             SLAM(step);
             if (par->q==qtmp) gomnecpt++;
             //if (gomnecpt>4) method=4;
@@ -201,12 +201,13 @@ void MainWindow::Simu(int method){
     }
     area/=par->ratio_area.size();
     cantlocalize/=cpt;cantlocalize*=100;
-    mess.append(QString::number(area));mess.append("\n");
-    mess.append(QString::number(cantlocalize));mess.append("\n");
+
     mess.append(QString::number(cerpos));mess.append("\n");//mess.append(" variance (pixel)");
     mess.append(QString::number(mean));mess.append("\n");//mess.append(" average error (pixel)\n");
-    //mess.append(QString::number(exec));mess.append("\n");
+    mess.append(QString::number(exec));mess.append("\n");
     mess.append(QString::number(errpercoutliergomne));mess.append("\n");
+    mess.append(QString::number(area));mess.append("\n");
+    mess.append(QString::number(cantlocalize));mess.append("\n");
     QMessageBox::information(this,"End of Simulation",mess);
 }
 
@@ -237,6 +238,12 @@ void MainWindow::repaint()
 }
 
 void MainWindow::SLAM(int step){
+    if(ui->step_SpinBox->value()>100){
+        QString war = "You selected a value too high for \nthe step when running SLAM. Now step=10";
+        QMessageBox::information(this,"Warning",war);
+        ui->step_SpinBox->setValue(10);
+
+    }
     double xmin=100,xmax=-100,ymin=100,ymax=-100;
     if(par->iteration!=0){
         par->box.clear();
@@ -252,7 +259,7 @@ void MainWindow::SLAM(int step){
         }
         double dt = 0.02;
         IntervalVector ivtemp(2);
-        double aprox=0.01+double(sqrt(step)/10);
+        double aprox=0.01+double(sqrt(step)/15);
         ivtemp[0]=Interval(xmin-aprox,xmax+aprox)+step*par->speedx[par->iteration-step];
         ivtemp[1]=Interval(ymin-aprox,ymax+aprox)+step*par->speedy[par->iteration-step];
         par->box.push_back(ivtemp);

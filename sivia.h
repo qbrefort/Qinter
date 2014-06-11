@@ -31,6 +31,7 @@ struct sivia_struct{
     double areain;
     vector<IntervalVector> box;
     vector<IntervalVector> vin;
+    vector<IntervalVector> vper;
     vector<IntervalVector> vin_prev;
     vector<double> ratio_area;
 };
