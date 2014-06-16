@@ -155,17 +155,19 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
         cout<<comb2[i][0]<<" "<<comb2[i][1]<<endl;
     }
 
-    for(int i=0;i<t-4;i++){
-            vec_in1.push_back(vec_in.at(i));
-    }
-    for(int i=0;i<t-4;i++){
-            vec_out1.push_back(vec_out.at(i));
-    }
+    int i=2;
+    vec_in1.push_back(vec_in.at(comb2[i][0]));
+    vec_in1.push_back(vec_in.at(comb2[i][1]));
 
+    vec_out1.push_back(vec_out.at(comb2[i][0]));
+    vec_out1.push_back(vec_out.at(comb2[i][1]));
+
+    CtcUnion inside(vec_in1);
+    CtcCompo outside(vec_out1);
     CtcQInter insidetmp(vec_in1,ctcq);
     CtcQInter outsidetmp(vec_out1,my_struct->q);
-    CtcFixPoint inside(insidetmp);
-    CtcFixPoint outside(outsidetmp);
+//    CtcFixPoint inside(insidetmp);
+//    CtcFixPoint outside(outsidetmp);
     IntervalVector box1 = my_struct->box.back();
 //    IntervalVector box(3);box[0]=box[1]=Interval(-25,25);box[2]=Interval(0,2);
     IntervalVector viinside(3);
