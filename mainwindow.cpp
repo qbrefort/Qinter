@@ -76,6 +76,7 @@ void MainWindow::GenTraj(){
     par->theta = new double[nb_step];
     par->speedx = new double[nb_step];
     par->speedy = new double[nb_step];
+    par->speed = new double[nb_step];
     xv.resize(nb_step); yv.resize(nb_step); zv.resize(nb_step);vv.resize(nb_step); thetav.resize(nb_step); u.resize(nb_step);
     xv[0] = 0; yv[0] = 0; zv[0] = 0; thetav[0]=0; vv[0]=0;
     double dt=0.02;
@@ -93,6 +94,7 @@ void MainWindow::GenTraj(){
         par->theta[i] = thetav[i];
         par->speedx[i] = (xv[i]-xv[i-1]);
         par->speedy[i] = (yv[i]-yv[i-1]);
+//        par->speed[i] = sqrt(pow(par->speedx[i],2)+pow(par->speedy[i],2));
     }
 }
 
@@ -172,6 +174,16 @@ void MainWindow::Simu(int method){
         myfile << vtcur.toUtf8().constData();myfile << "\n";
         if(ui->StopSimu->isDown())  break;
         cpt++;
+        int ip;
+        if (i!=0){
+            double spx = (xv[int(i)]-xv[ip]);
+            double spy = (yv[int(i)]-yv[ip]);
+            double dt = 0.02;
+            par->speed[int(i)] = sqrt(pow(spx,2)+pow(spy,2))/dt;
+            cout << par->speed[int(i)] << endl;
+        }
+        ip = i;
+
     }
     double errpercoutliergomne = double(errgomne)/double(cpt);
     myfile.close();

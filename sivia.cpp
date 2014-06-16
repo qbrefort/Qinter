@@ -1,8 +1,22 @@
 #include "sivia.h"
 #include <math.h>
+#include <algorithm>
 
 #include <stdlib.h>
 
+unsigned Sivia::nChoosek( unsigned n, unsigned k )
+{
+    if (k > n) return 0;
+    if (k * 2 > n) k = n-k;
+    if (k == 0) return 1;
+
+    int result = n;
+    for( int i = 2; i <= k; ++i ) {
+        result *= (n-i+1);
+        result /= i;
+    }
+    return result;
+}
 
 void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside,int isctcinside,struct sivia_struct *my_struct,int& nbox, const QColor & pencolor, const QColor & brushcolor) {
     IntervalVector X0= X;       // get a copy
@@ -98,32 +112,7 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
     vector<Ctc*> vec_in;
     CtcNotIn* intemp1,*intemp2,*intemp3;
     CtcIn* outtemp1,*outtemp2,*outtemp3;
-//    for(int i=0;i<n;i++) {
 
-//        if (cos(th1[i])>0){
-//            outtemp1 = (new CtcIn(*(theta_1[i]),Interval(0,100)));
-//            intemp1 = (new CtcNotIn(*(theta_1[i]),Interval(0,100)));
-//        }
-//        else{
-//            outtemp1 = (new CtcIn(*(theta_1[i]),Interval(-100,0)));
-//            intemp1 = (new CtcNotIn(*(theta_1[i]),Interval(-100,0)));
-//        }
-//        if (cos(th2[i])>0){
-//            outtemp2 = (new CtcIn(*(theta_2[i]),Interval(-100,0)));
-//            intemp2 =(new CtcNotIn(*(theta_2[i]),Interval(-100,0)));
-//        }
-//        else{
-//            outtemp2 = (new CtcIn(*(theta_2[i]),Interval(0,100)));
-//            intemp2 =(new CtcNotIn(*(theta_2[i]),Interval(0,100)));
-//        }
-//        outtemp3 = (new CtcIn(*(f[i]),(r[i]+Interval(-1,1)*my_struct->err[i])));
-//        intemp3 = (new CtcNotIn(*(f[i]),(r[i]+Interval(-1,1)*my_struct->err[i])));
-
-//        vec_out.push_back(new CtcUnion(*outtemp1,*outtemp2,*outtemp3));
-//        vec_in.push_back(new CtcCompo(*intemp1,*intemp2,*intemp3));
-//    }
-//    free(intemp1);free(intemp2);free(intemp3);free(outtemp1);free(outtemp2);free(outtemp3);
-//    cout<<"coucou"<<endl;
     for(int i=0;i<n;i++) {
         vec_out.push_back(new CtcIn(*(f[i]),(r[i]+Interval(-1,1)*my_struct->err[i])));
         vec_in.push_back(new CtcNotIn(*(f[i]),(r[i]+Interval(-1,1)*my_struct->err[i])));
@@ -133,9 +122,48 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
     int maxq = my_struct->nb_beacon; //nb of contractors
     int ctcq = maxq - my_struct->q + 1; //nb for q-relaxed function of Ibex
     int ninbox = 0;
+    vector<Ctc*> vec_in1,vec_out1;
 
-    CtcQInter insidetmp(vec_in,ctcq);
-    CtcQInter outsidetmp(vec_out,my_struct->q);
+    int t, p;
+    t=n;
+    p=2;
+
+    std::vector<bool> v(t);
+    std::fill(v.begin() + p, v.end(), true);
+
+
+    unsigned nc = nChoosek(t,p);
+    int comb[nc*2];
+    int cpt=0;
+    do {
+        for (int i = 0; i < t; ++i) {
+            if (!v[i]) {
+                comb[cpt]=i+1;
+                cpt++;
+            }
+
+        }
+    } while (std::next_permutation(v.begin(), v.end()));
+    int comb2[nc][2];
+    int j=0;
+    for(int i=0;i<nc*2;i=i+2){
+        comb2[j][0] = comb[i];
+        comb2[j][1] = comb[i+1];
+        j++;
+    }
+    for(int i=0;i<nc;i++){
+        cout<<comb2[i][0]<<" "<<comb2[i][1]<<endl;
+    }
+
+    for(int i=0;i<t-4;i++){
+            vec_in1.push_back(vec_in.at(i));
+    }
+    for(int i=0;i<t-4;i++){
+            vec_out1.push_back(vec_out.at(i));
+    }
+
+    CtcQInter insidetmp(vec_in1,ctcq);
+    CtcQInter outsidetmp(vec_out1,my_struct->q);
     CtcFixPoint inside(insidetmp);
     CtcFixPoint outside(outsidetmp);
     IntervalVector box1 = my_struct->box.back();

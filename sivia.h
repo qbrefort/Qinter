@@ -17,6 +17,7 @@ struct sivia_struct{
     double *theta_sonar;
     double *speedx;
     double *speedy;
+    double *speed;
     int isinside;
     int q;
     int nb_beacon;
@@ -53,6 +54,7 @@ public:
      * with the colors "pencolor" and "brushcolor".
      */
     void contract_and_draw(Ctc& c, IntervalVector& box,IntervalVector& iinside,int isctcinsside,struct sivia_struct *my_struct,int& nbox,  const QColor & pencolor, const QColor & brushcolor);
+    unsigned nChoosek( unsigned n, unsigned k );
 
 private:
     repere& R;
