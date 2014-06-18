@@ -7,6 +7,15 @@
 using namespace ibex;
 using namespace std;
 
+struct str_tab{
+    double* value;
+    int* pos1;
+    int* pos2;
+    int* lb;
+    int* up;
+};
+
+
 struct sivia_struct{
     double *x;
     double *y;
@@ -14,7 +23,6 @@ struct sivia_struct{
     double robot_position_found[3];
     double robot_position[4];
     double *theta;
-    double *theta_sonar;
     double *speedx;
     double *speedy;
     double *speed;
@@ -30,6 +38,7 @@ struct sivia_struct{
     double beacon_interval;
     double erroutlier;
     int iteration;
+    double step;
     double areap;
     double areain;
     vector<IntervalVector> box;
@@ -57,7 +66,7 @@ public:
      * with the colors "pencolor" and "brushcolor".
      */
     void contract_and_draw(Ctc& c, IntervalVector& box,IntervalVector& iinside,int isctcinsside,struct sivia_struct *my_struct,int& nbox,  const QColor & pencolor, const QColor & brushcolor);
-
+    unsigned nChoosek( unsigned n, unsigned k );
 
 private:
     repere& R;

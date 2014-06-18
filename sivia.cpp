@@ -6,6 +6,20 @@
 
 
 
+unsigned Sivia::nChoosek( unsigned n, unsigned k )
+{
+    if (k > n) return 0;
+    if (k * 2 > n) k = n-k;
+    if (k == 0) return 1;
+
+    int result = n;
+    for( int i = 2; i <= k; ++i ) {
+        result *= (n-i+1);
+        result /= i;
+    }
+    return result;
+}
+
 void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside,int isctcinside,struct sivia_struct *my_struct,int& nbox, const QColor & pencolor, const QColor & brushcolor) {
     IntervalVector X0= X;       // get a copy
     try {
@@ -78,28 +92,18 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
 
     vector<Function*> f;
     vector<Function*> fp;
-    vector<Function*> theta_1;
-    vector<Function*> theta_2;
-    double th1[n];
-    double th2[n];
-    for (int i=0;i<n;i++){
-        th1[i] = my_struct->theta_sonar[i];
-        th2[i] = th1[i] + 20;
-    }
+
+
 
     for(int i=0;i<n;i++) {
 //        f.push_back(new Function(xvar,yvar,zvar,sqrt(sqr(xvar-x[i])+sqr(yvar-y[i])+sqr(zvar-z[i]))));
         f.push_back(new Function(xvar,yvar,sqrt(sqr(xvar-Interval(x[i]-my_struct->beacon_interval*r[i]/100,x[i]+my_struct->beacon_interval*r[i]/100))
                                                 +sqr(yvar-Interval(y[i]-my_struct->beacon_interval*r[i]/100,y[i]+my_struct->beacon_interval*r[i]/100)))));
-         fp.push_back(new Function(xvar,yvar,tvar,sqrt(sqr(xvar-x[i])+sqr(yvar-y[i]))));
-         theta_1.push_back(new Function(xvar,yvar,yvar-y[i]-((r[i]*sin(th1[i])-y[i])/(r[i]*cos(th1[i])-x[i]))*(xvar-x[i])));
-         theta_2.push_back(new Function(xvar,yvar,yvar-y[i]-((r[i]*sin(th2[i])-y[i])/(r[i]*cos(th2[i])-x[i]))*(xvar-x[i])));
+        fp.push_back(new Function(xvar,yvar,tvar,sqrt(sqr(xvar-x[i])+sqr(yvar-y[i]))));
     }
 
     vector<Ctc*> vec_out;
     vector<Ctc*> vec_in;
-    CtcNotIn* intemp1,*intemp2,*intemp3;
-    CtcIn* outtemp1,*outtemp2,*outtemp3;
 
     for(int i=0;i<n;i++) {
         vec_out.push_back(new CtcIn(*(f[i]),(r[i]+Interval(-1,1)*my_struct->err[i])));
@@ -114,6 +118,286 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
 
 
     if (my_struct->pairs ==1){
+
+        str_tab *my_tabx = new str_tab();
+        str_tab *my_taby = new str_tab();
+
+        int n, p;
+        n = my_struct->nb_beacon;
+        p=2;
+
+        std::vector<bool> v(n);
+        std::fill(v.begin() + p, v.end(), true);
+        unsigned nc = nChoosek(n,p);
+        int comb[nc*2];
+        int cpt=0;
+        do {
+            for (int i = 0; i < n; ++i) {
+                if (!v[i]) {
+                    comb[cpt]=i+1;
+                    cpt++;
+                }
+            }
+        } while (std::next_permutation(v.begin(), v.end()));
+        int comb2[nc][2];
+        int j=0;
+        for(int i=0;i<nc*2;i=i+2){
+            comb2[j][0] = comb[i];
+            comb2[j][1] = comb[i+1];
+            j++;
+        }
+
+
+        my_tabx->lb = new int[2*nc];
+        my_tabx->up = new int[2*nc];
+        my_tabx->pos1 = new int[2*nc];
+        my_tabx->pos2 = new int[2*nc];
+        my_tabx->value = new double[2*nc];
+
+
+        my_taby->lb = new int[2*nc];
+        my_taby->up = new int[2*nc];
+        my_taby->pos1 = new int[2*nc];
+        my_taby->pos2 = new int[2*nc];
+        my_taby->value = new double[2*nc];
+
+        str_tab *my_temp_tabx = new str_tab();
+        str_tab *my_temp_taby = new str_tab();
+
+        my_temp_tabx->lb = new int[2*nc];
+        my_temp_tabx->up = new int[2*nc];
+        my_temp_tabx->pos1 = new int[2*nc];
+        my_temp_tabx->pos2 = new int[2*nc];
+        my_temp_tabx->value = new double[2*nc];
+
+
+        my_temp_taby->lb = new int[2*nc];
+        my_temp_taby->up = new int[2*nc];
+        my_temp_taby->pos1 = new int[2*nc];
+        my_temp_taby->pos2 = new int[2*nc];
+        my_temp_taby->value = new double[2*nc];
+
+
+        for(int i=0;i<nc;i++){
+            cout<<comb2[i][0]<<" "<<comb2[i][1]<<endl;
+            my_struct->comb1 = int(comb2[i][0]);
+            my_struct->comb2 = int(comb2[i][1]);
+
+            //cout << my_struct->intervalIn[0]<<";"<<my_struct->intervalIn[1]  <<endl;
+
+            int ci = my_struct->comb1;
+            int cj = my_struct->comb2;
+            double d_tilde_i = r[i];
+            double d_tilde_j = r[j];
+
+            double Delta_i = my_struct->beacon_interval*r[ci]/100;
+            double Delta_j = my_struct->beacon_interval*r[cj]/100;
+            double x0,y0;
+            if(my_struct->iteration==0){
+                x0=y0=0;
+            }
+            else{
+                x0=my_struct->robot_position_found[0];
+                y0=my_struct->robot_position_found[1];
+            }
+            double sx_i = x[ci];
+            double sy_i = y[ci];
+
+            double sx_j = x[cj];
+            double sy_j = y[cj];
+
+            double v = my_struct->speed[ci];
+
+            double eps_vdt = v*my_struct->step;
+            double eps0 = my_struct->epsilon_sivia;
+
+            double v_tilde_i = pow(d_tilde_i,2) + pow(Delta_i,2) + pow(x0-sx_i,2) + pow(y0-sy_i,2) - 0.5*pow(eps_vdt+eps0,2);
+            double v_tilde_j = pow(d_tilde_j,2) + pow(Delta_j,2) + pow(x0-sx_j,2) + pow(y0-sy_j,2) - 0.5*pow(eps_vdt+eps0,2);
+
+            double delta_i = 2*d_tilde_i*Delta_i + 0.5*pow(eps_vdt+eps0,2);
+            double delta_j = 2*d_tilde_i*Delta_j + 0.5*pow(eps_vdt+eps0,2);
+
+            double ai1 = 2*(x0-sx_i);
+            double ai2 = 2*(y0-sx_i);
+            double aj1 = 2*(x0-sx_j);
+            double aj2 = 2*(y0-sx_j);
+
+            double det = 1/(ai1*aj2-ai2*aj1);
+
+            double b1i = det*aj2;
+            double b2i = -det*aj1;
+            double b1j = -det*ai2;
+            double b2j = det*ai1;
+
+            double x1_tilde = b1i*v_tilde_i +b1j*v_tilde_j;
+            double x2_tilde = b2i*v_tilde_i +b2j*v_tilde_j;
+
+            double r_1 = fabs(b1i)*delta_i + fabs(b1j)*delta_j;
+            double r_2 = fabs(b2i)*delta_i + fabs(b2j)*delta_j;
+
+            double x1_lb = x1_tilde - r_1;
+            double x1_ub = x1_tilde + r_1;
+
+            double x2_lb = x2_tilde - r_2;
+            double x2_ub = x2_tilde + r_2;
+
+            double lbx,ubx,lby,uby;
+            lbx = x1_lb;
+            ubx = x1_ub;
+            lby = x2_lb;
+            uby = x2_ub;
+            //cout << lbx<<";"<<ubx<<";"<<lby<<";"<<uby <<endl;
+
+            my_tabx->lb[i] = 1;
+            my_tabx->lb[nc+i] = 0;
+            my_tabx->up[i] = 0;
+            my_tabx->up[nc+i] = 1;
+            my_tabx->pos1[i] = my_struct->comb1;
+            my_tabx->pos2[i] = my_struct->comb2;
+            my_tabx->pos1[nc+i] = my_struct->comb1;
+            my_tabx->pos2[nc+i] = my_struct->comb2;
+            my_tabx->value[nc+i] = ubx;
+            my_tabx->value[i] = lbx;
+
+            my_taby->lb[i] = 1;
+            my_taby->lb[i+nc] = 0;
+            my_taby->up[i] = 0;
+            my_taby->up[nc+i] = 1;
+            my_taby->pos1[i] = my_struct->comb1;
+            my_taby->pos2[i] = my_struct->comb2;
+            my_taby->pos1[nc+i] = my_struct->comb1;
+            my_taby->pos2[nc+i] = my_struct->comb2;
+            my_taby->value[nc+i] = uby;
+            my_taby->value[i] = lby;
+
+            my_temp_tabx->lb[i] = 1;
+            my_temp_tabx->lb[nc+i] = 0;
+            my_temp_tabx->up[i] = 0;
+            my_temp_tabx->up[nc+i] = 1;
+            my_temp_tabx->pos1[i] = my_struct->comb1;
+            my_temp_tabx->pos2[i] = my_struct->comb2;
+            my_temp_tabx->pos1[nc+i] = my_struct->comb1;
+            my_temp_tabx->pos2[nc+i] = my_struct->comb2;
+            my_temp_tabx->value[nc+i] = ubx;
+            my_temp_tabx->value[i] = lbx;
+
+            my_temp_taby->lb[i] = 1;
+            my_temp_taby->lb[i+nc] = 0;
+            my_temp_taby->up[i] = 0;
+            my_temp_taby->up[nc+i] = 1;
+            my_temp_taby->pos1[i] = my_struct->comb1;
+            my_temp_taby->pos2[i] = my_struct->comb2;
+            my_temp_taby->pos1[nc+i] = my_struct->comb1;
+            my_temp_taby->pos2[nc+i] = my_struct->comb2;
+            my_temp_taby->value[nc+i] = uby;
+            my_temp_taby->value[i] = lby;
+        }
+
+
+
+
+
+
+
+
+
+        std::vector<double> sortedvector (my_tabx->value,my_tabx->value+2*nc);
+
+        // using default comparison (operator <):
+        std::sort (sortedvector.begin(), sortedvector.begin()+2*nc);
+
+
+        for(int i=0;i<2*nc;i++){
+            int j=0;
+            for (std::vector<double>::iterator it=sortedvector.begin(); it!=sortedvector.end(); ++it){
+    //            std::cout << ' ' << *it;
+                if(my_temp_tabx->value[i]==*it){
+                    my_tabx->lb[j] = my_temp_tabx->lb[i];
+                    my_tabx->up[j] = my_temp_tabx->up[i];
+                    my_tabx->pos1[j] = my_temp_tabx->pos1[i];
+                    my_tabx->pos2[j] = my_temp_tabx->pos2[i];
+                    my_tabx->value[j] = my_temp_tabx->value[i];
+                }
+                j++;
+            }
+        }
+        std::vector<double> sortedvectory (my_taby->value,my_taby->value+2*nc);
+
+        // using default comparison (operator <):
+        std::sort (sortedvectory.begin(), sortedvectory.begin()+2*nc);
+
+        for(int i=0;i<2*nc;i++){
+            int j=0;
+            for (std::vector<double>::iterator it=sortedvectory.begin(); it!=sortedvectory.end(); ++it){
+    //            std::cout << ' ' << *it;
+                if(my_temp_taby->value[i]==*it){
+                    my_taby->lb[j] = my_temp_taby->lb[i];
+                    my_taby->up[j] = my_temp_taby->up[i];
+                    my_taby->pos1[j] = my_temp_taby->pos1[i];
+                    my_taby->pos2[j] = my_temp_taby->pos2[i];
+                    my_taby->value[j] = my_temp_taby->value[i];
+                }
+                j++;
+            }
+        }
+        std::cout << "myvectorx contains:";
+        for(int i=0;i<2*nc;i++){
+            cout<<my_temp_tabx->value[i]<<";"<<my_temp_tabx->pos1[i]<<my_temp_tabx->pos2[i]<<";"<<my_temp_tabx->lb[i]<<"|";
+        }
+        cout<<"\n";
+        std::cout << "myvectorx2 contains:";
+        for(int i=0;i<2*nc;i++){
+            cout<<my_tabx->value[i]<<";"<<my_tabx->pos1[i]<<my_tabx->pos2[i]<<";"<<my_tabx->lb[i]<<"|";
+        }
+        cout<<"\n";
+        std::cout << "myvectory contains:";
+        for(int i=0;i<2*nc;i++){
+            cout<<my_temp_taby->value[i]<<";"<<my_temp_taby->pos1[i]<<my_temp_taby->pos2[i]<<";"<<my_temp_taby->lb[i]<<"|";
+        }
+        cout<<"\n";
+        std::cout << "myvectory2 contains:";
+        for(int i=0;i<2*nc;i++){
+            cout<<my_taby->value[i]<<";"<<my_taby->pos1[i]<<my_taby->pos2[i]<<";"<<my_taby->lb[i]<<"|";
+        }
+        std::cout << endl<<"Imax:";
+        int Imax=0;
+        int Imaxy=0;
+        int tab_imax[2*nc];
+        int tab_imaxy[2*nc];
+        for(int i=0;i<2*nc;i++){
+            if((my_tabx->up[i])==0){   Imax++;}
+            if((my_tabx->up[i])==1){   Imax--;}
+            tab_imax[i] = Imax;
+            if((my_taby->up[i])==0){   Imaxy++;}
+            if((my_taby->up[i])==1){   Imaxy--;}
+            tab_imaxy[i] = Imaxy;
+            cout<<Imax;
+        }
+        Imax = -20;
+        int indmax;
+        for(int i=0;i<2*nc;i++){
+            if(tab_imax[i]>Imax){
+                indmax= i;
+                Imax = tab_imax[i];
+            }
+        }
+        int indmaxy;
+        Imaxy = -20;
+        for(int i=0;i<2*nc;i++){
+            if(tab_imaxy[i]>Imaxy){
+                indmaxy= i;
+                Imaxy = tab_imaxy[i];
+            }
+        }
+
+        int goSivx1 = my_tabx->pos1[indmax];
+        int goSivy1 = my_taby->pos1[indmaxy];
+        int goSivx2 = my_tabx->pos2[indmax];
+        int goSivy2 = my_taby->pos2[indmaxy];
+
+        my_struct->comb1 = goSivx1;
+        my_struct->comb2 = goSivx2;
+
         vec_in1.push_back(vec_in.at(my_struct->comb1-1));
         vec_in1.push_back(vec_in.at(my_struct->comb2-1));
 

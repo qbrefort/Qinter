@@ -18,8 +18,7 @@ bool first_simu = false;
 repere *R;
 sivia_struct *par = new sivia_struct(); // SIVIA parameters
 
-str_tab *my_tabx = new str_tab();
-str_tab *my_taby = new str_tab();
+
 
 
 double MainWindow::sign(double a){
@@ -51,7 +50,6 @@ MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainW
     par->z = new double[100];
     par->outliers = new int[100];
     par->err = new double[100];
-    par->theta_sonar = new double[100];
     par->in_perhaps = 0;
     par->isinside = 0;
     par->nb_beacon = ui->BeaconSpinBox->value();;
@@ -135,7 +133,6 @@ void MainWindow::Simu(int method){
         par->x[i]= 1*(25 - rand() % 50);
         par->y[i]= 1*(25 - rand() % 50);
         par->z[i]= 5-i%4;
-        par->theta_sonar[i] = rand() % 360;
         if((rand() % 100) <= probsensorfalse){
             if (rand() % 1 ==1)
                 par->outliers[i]=1;
@@ -161,6 +158,7 @@ void MainWindow::Simu(int method){
     par->ratio_area.clear();
     par->areain=0;
     par->areap=0;
+    par->step = step;
     for(double i=0;i<6500;i=i+step){
         //cout<<"entry box :"<<par->box.back()<<endl;
         QElapsedTimer tcur;
@@ -412,220 +410,12 @@ void MainWindow::Pair(){
     ui->ErrSpinBox_4->setValue(par->err[3]);
     ui->ErrSpinBox_5->setValue(par->err[4]);
 
-    int n, p;
-    n = par->nb_beacon;
-    p=2;
     par->pairs = 1;
-    std::vector<bool> v(n);
-    std::fill(v.begin() + p, v.end(), true);
-    unsigned nc = nChoosek(n,p);
-    int comb[nc*2];
-    int cpt=0;
-    do {
-        for (int i = 0; i < n; ++i) {
-            if (!v[i]) {
-                comb[cpt]=i+1;
-                cpt++;
-            }
-        }
-    } while (std::next_permutation(v.begin(), v.end()));
-    int comb2[nc][2];
-    int j=0;
-    for(int i=0;i<nc*2;i=i+2){
-        comb2[j][0] = comb[i];
-        comb2[j][1] = comb[i+1];
-        j++;
-    }
 
 
-    my_tabx->lb = new int[2*nc];
-    my_tabx->up = new int[2*nc];
-    my_tabx->pos1 = new int[2*nc];
-    my_tabx->pos2 = new int[2*nc];
-    my_tabx->value = new double[2*nc];
-
-
-    my_taby->lb = new int[2*nc];
-    my_taby->up = new int[2*nc];
-    my_taby->pos1 = new int[2*nc];
-    my_taby->pos2 = new int[2*nc];
-    my_taby->value = new double[2*nc];
-
-    str_tab *my_temp_tabx = new str_tab();
-    str_tab *my_temp_taby = new str_tab();
-
-    my_temp_tabx->lb = new int[2*nc];
-    my_temp_tabx->up = new int[2*nc];
-    my_temp_tabx->pos1 = new int[2*nc];
-    my_temp_tabx->pos2 = new int[2*nc];
-    my_temp_tabx->value = new double[2*nc];
-
-
-    my_temp_taby->lb = new int[2*nc];
-    my_temp_taby->up = new int[2*nc];
-    my_temp_taby->pos1 = new int[2*nc];
-    my_temp_taby->pos2 = new int[2*nc];
-    my_temp_taby->value = new double[2*nc];
-
-
-    for(int i=0;i<nc;i++){
-        cout<<comb2[i][0]<<" "<<comb2[i][1]<<endl;
-        par->comb1 = int(comb2[i][0]);
-        par->comb2 = int(comb2[i][1]);
-        Sivia(*R,par);
-        //cout << par->intervalIn[0]<<";"<<par->intervalIn[1]  <<endl;
-        double lbx,ubx,lby,uby;
-        lbx = par->intervalIn[0].lb();
-        ubx = par->intervalIn[0].ub();
-        lby = par->intervalIn[1].lb();
-        uby = par->intervalIn[1].ub();
-        //cout << lbx<<";"<<ubx<<";"<<lby<<";"<<uby <<endl;
-
-        my_tabx->lb[i] = 1;
-        my_tabx->lb[nc+i] = 0;
-        my_tabx->up[i] = 0;
-        my_tabx->up[nc+i] = 1;
-        my_tabx->pos1[i] = par->comb1;
-        my_tabx->pos2[i] = par->comb2;
-        my_tabx->pos1[nc+i] = par->comb1;
-        my_tabx->pos2[nc+i] = par->comb2;
-        my_tabx->value[nc+i] = ubx;
-        my_tabx->value[i] = lbx;
-
-        my_taby->lb[i] = 1;
-        my_taby->lb[i+nc] = 0;
-        my_taby->up[i] = 0;
-        my_taby->up[nc+i] = 1;
-        my_taby->pos1[i] = par->comb1;
-        my_taby->pos2[i] = par->comb2;
-        my_taby->pos1[nc+i] = par->comb1;
-        my_taby->pos2[nc+i] = par->comb2;
-        my_taby->value[nc+i] = uby;
-        my_taby->value[i] = lby;
-
-        my_temp_tabx->lb[i] = 1;
-        my_temp_tabx->lb[nc+i] = 0;
-        my_temp_tabx->up[i] = 0;
-        my_temp_tabx->up[nc+i] = 1;
-        my_temp_tabx->pos1[i] = par->comb1;
-        my_temp_tabx->pos2[i] = par->comb2;
-        my_temp_tabx->pos1[nc+i] = par->comb1;
-        my_temp_tabx->pos2[nc+i] = par->comb2;
-        my_temp_tabx->value[nc+i] = ubx;
-        my_temp_tabx->value[i] = lbx;
-
-        my_temp_taby->lb[i] = 1;
-        my_temp_taby->lb[i+nc] = 0;
-        my_temp_taby->up[i] = 0;
-        my_temp_taby->up[nc+i] = 1;
-        my_temp_taby->pos1[i] = par->comb1;
-        my_temp_taby->pos2[i] = par->comb2;
-        my_temp_taby->pos1[nc+i] = par->comb1;
-        my_temp_taby->pos2[nc+i] = par->comb2;
-        my_temp_taby->value[nc+i] = uby;
-        my_temp_taby->value[i] = lby;
-    }
-
-
-    std::vector<double> sortedvector (my_tabx->value,my_tabx->value+2*nc);
-
-    // using default comparison (operator <):
-    std::sort (sortedvector.begin(), sortedvector.begin()+2*nc);
-
-
-    for(int i=0;i<2*nc;i++){
-        int j=0;
-        for (std::vector<double>::iterator it=sortedvector.begin(); it!=sortedvector.end(); ++it){
-//            std::cout << ' ' << *it;
-            if(my_temp_tabx->value[i]==*it){
-                my_tabx->lb[j] = my_temp_tabx->lb[i];
-                my_tabx->up[j] = my_temp_tabx->up[i];
-                my_tabx->pos1[j] = my_temp_tabx->pos1[i];
-                my_tabx->pos2[j] = my_temp_tabx->pos2[i];
-                my_tabx->value[j] = my_temp_tabx->value[i];
-            }
-            j++;
-        }
-    }
-    std::vector<double> sortedvectory (my_taby->value,my_taby->value+2*nc);
-
-    // using default comparison (operator <):
-    std::sort (sortedvectory.begin(), sortedvectory.begin()+2*nc);
-
-    for(int i=0;i<2*nc;i++){
-        int j=0;
-        for (std::vector<double>::iterator it=sortedvectory.begin(); it!=sortedvectory.end(); ++it){
-//            std::cout << ' ' << *it;
-            if(my_temp_taby->value[i]==*it){
-                my_taby->lb[j] = my_temp_taby->lb[i];
-                my_taby->up[j] = my_temp_taby->up[i];
-                my_taby->pos1[j] = my_temp_taby->pos1[i];
-                my_taby->pos2[j] = my_temp_taby->pos2[i];
-                my_taby->value[j] = my_temp_taby->value[i];
-            }
-            j++;
-        }
-    }
-    std::cout << "myvectorx contains:";
-    for(int i=0;i<2*nc;i++){
-        cout<<my_temp_tabx->value[i]<<";"<<my_temp_tabx->pos1[i]<<my_temp_tabx->pos2[i]<<";"<<my_temp_tabx->lb[i]<<"|";
-    }
-    cout<<"\n";
-    std::cout << "myvectorx2 contains:";
-    for(int i=0;i<2*nc;i++){
-        cout<<my_tabx->value[i]<<";"<<my_tabx->pos1[i]<<my_tabx->pos2[i]<<";"<<my_tabx->lb[i]<<"|";
-    }
-    cout<<"\n";
-    std::cout << "myvectory contains:";
-    for(int i=0;i<2*nc;i++){
-        cout<<my_temp_taby->value[i]<<";"<<my_temp_taby->pos1[i]<<my_temp_taby->pos2[i]<<";"<<my_temp_taby->lb[i]<<"|";
-    }
-    cout<<"\n";
-    std::cout << "myvectory2 contains:";
-    for(int i=0;i<2*nc;i++){
-        cout<<my_taby->value[i]<<";"<<my_taby->pos1[i]<<my_taby->pos2[i]<<";"<<my_taby->lb[i]<<"|";
-    }
-    std::cout << endl<<"Imax:";
-    int Imax=0;
-    int Imaxy=0;
-    int tab_imax[2*nc];
-    int tab_imaxy[2*nc];
-    for(int i=0;i<2*nc;i++){
-        if((my_tabx->up[i])==0){   Imax++;}
-        if((my_tabx->up[i])==1){   Imax--;}
-        tab_imax[i] = Imax;
-        if((my_taby->up[i])==0){   Imaxy++;}
-        if((my_taby->up[i])==1){   Imaxy--;}
-        tab_imaxy[i] = Imaxy;
-        cout<<Imax;
-    }
-    Imax = -20;
-    int indmax;
-    for(int i=0;i<2*nc;i++){
-        if(tab_imax[i]>Imax){
-            indmax= i;
-            Imax = tab_imax[i];
-        }
-    }
-    int indmaxy;
-    Imaxy = -20;
-    for(int i=0;i<2*nc;i++){
-        if(tab_imaxy[i]>Imaxy){
-            indmaxy= i;
-            Imaxy = tab_imaxy[i];
-        }
-    }
-
-    int goSivx1 = my_tabx->pos1[indmax];
-    int goSivy1 = my_taby->pos1[indmaxy];
-    int goSivx2 = my_tabx->pos2[indmax];
-    int goSivy2 = my_taby->pos2[indmaxy];
-
-    par->comb1=goSivx1;
-    par->comb2=goSivx2;
     Sivia(*R,par);
     cout<<endl;
-    cout<<"Imaxtab:"<<Imax<<"\n"<<endl;
+    //cout<<"Imaxtab:"<<Imax<<"\n"<<endl;
     repaint();
 
     if (timeinfo){

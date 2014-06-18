@@ -9,13 +9,6 @@
 
 #include <stdlib.h>
 
-struct str_tab{
-    double* value;
-    int* pos1;
-    int* pos2;
-    int* lb;
-    int* up;
-};
 
 namespace Ui {
 class MainWindow;
