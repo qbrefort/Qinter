@@ -1,10 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "ibex.h"
-#include "sivia.h"
-#include <math.h>
-
 #include <fstream>
 
 #include <QElapsedTimer>
@@ -22,12 +18,29 @@ bool first_simu = false;
 repere *R;
 sivia_struct *par = new sivia_struct(); // SIVIA parameters
 
+str_tab *my_tabx = new str_tab();
+str_tab *my_taby = new str_tab();
+
 
 double MainWindow::sign(double a){
     if (a >= 0)
         return 1;
     else
         return -1;
+}
+
+unsigned MainWindow::nChoosek( unsigned n, unsigned k )
+{
+    if (k > n) return 0;
+    if (k * 2 > n) k = n-k;
+    if (k == 0) return 1;
+
+    int result = n;
+    for( int i = 2; i <= k; ++i ) {
+        result *= (n-i+1);
+        result /= i;
+    }
+    return result;
 }
 
 MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainWindow) {
@@ -65,6 +78,7 @@ void MainWindow::Init() {
     probsensorfalse=ui->probsensorisfalseSpinBox->value();
     par->erroutlier = ui->errorOutlierSpinBox->value();
     par->nb_beacon = ui->BeaconSpinBox->value();
+    par->pairs = 0;
     for (int i=0;i<100;i++) par->err[i]=0.2;
 }
 
@@ -165,6 +179,7 @@ void MainWindow::Simu(int method){
             //if (gomnecpt>4) method=4;
         }
         if(method==4) GOMNE_fixed_q();
+        if(method==5) Pair();
         errgomne += fabs(double(par->q-(double(par->nb_beacon) -  double(nboutlier))) / (double(par->nb_beacon) -  double(nboutlier))*100);
         ui->TSlider->setValue(t);
         Zoom(step);
@@ -180,7 +195,7 @@ void MainWindow::Simu(int method){
             double spy = (yv[int(i)]-yv[ip]);
             double dt = 0.02;
             par->speed[int(i)] = sqrt(pow(spx,2)+pow(spy,2))/dt;
-            cout << par->speed[int(i)] << endl;
+            //cout << par->speed[int(i)] << endl;
         }
         ip = i;
 
@@ -224,8 +239,8 @@ void MainWindow::Simu(int method){
 }
 
 // Update current window and update certain parameter for the simulation
-void MainWindow::repaint()
-{
+void MainWindow::repaint(){
+
     RobotTraj();
     uint cpt=0;
     for(double i=0;i<6500-111;i=i+10){
@@ -280,8 +295,7 @@ void MainWindow::SLAM(int step){
 }
 
 // Call simulation gomne
-void MainWindow::on_ButtonGOMNE_clicked()
-{
+void MainWindow::on_ButtonGOMNE_clicked(){
     if (first_simu == false){
         QMessageBox::warning(this,"Abort process",
         "To run the alogrithm at a given time, first you need to run a simulation.\nYou can stop it before the end by holding the STOP button.\nYour current simulation will end.");
@@ -330,8 +344,8 @@ void MainWindow::on_ButtonGOMNE_clicked()
     }
     ui->InterSpinBox->setValue(par->q);
 }
-void MainWindow::GOMNE_fixed_q()
-{
+
+void MainWindow::GOMNE_fixed_q(){
     QElapsedTimer tgomne;
     tgomne.start();
     RobotTraj();
@@ -375,9 +389,190 @@ void MainWindow::GOMNE_fixed_q()
     }
     ui->InterSpinBox->setValue(par->q);
 }
+
+
+void MainWindow::Pair(){
+    QElapsedTimer tgomne;
+    tgomne.start();
+    RobotTraj();
+    Init();
+    ui->BeaconSpinBox->setValue(5);
+    par->isinside=0;
+    par->q = ui->BeaconSpinBox->value();
+
+    par->nb_beacon = ui->BeaconSpinBox->value();
+    //cout<<"q"<<par->q<<endl;
+    ui->EpsilonSpinBox->setValue(0.02);
+    for (uint i=0;i<100;i++){
+       par->err[i] = 0.2;
+    }
+    ui->ErrSpinBox_1->setValue(par->err[0]);
+    ui->ErrSpinBox_2->setValue(par->err[1]);
+    ui->ErrSpinBox_3->setValue(par->err[2]);
+    ui->ErrSpinBox_4->setValue(par->err[3]);
+    ui->ErrSpinBox_5->setValue(par->err[4]);
+
+    int n, p;
+    n = par->nb_beacon;
+    p=2;
+    par->pairs = 1;
+    std::vector<bool> v(n);
+    std::fill(v.begin() + p, v.end(), true);
+    unsigned nc = nChoosek(n,p);
+    int comb[nc*2];
+    int cpt=0;
+    do {
+        for (int i = 0; i < n; ++i) {
+            if (!v[i]) {
+                comb[cpt]=i+1;
+                cpt++;
+            }
+        }
+    } while (std::next_permutation(v.begin(), v.end()));
+    int comb2[nc][2];
+    int j=0;
+    for(int i=0;i<nc*2;i=i+2){
+        comb2[j][0] = comb[i];
+        comb2[j][1] = comb[i+1];
+        j++;
+    }
+
+
+    my_tabx->lb = new int[2*nc];
+    my_tabx->up = new int[2*nc];
+    my_tabx->pos1 = new int[2*nc];
+    my_tabx->pos2 = new int[2*nc];
+    my_tabx->value = new double[2*nc];
+
+
+    my_taby->lb = new int[2*nc];
+    my_taby->up = new int[2*nc];
+    my_taby->pos1 = new int[2*nc];
+    my_taby->pos2 = new int[2*nc];
+    my_taby->value = new double[2*nc];
+
+    str_tab *my_temp_tabx = new str_tab();
+    str_tab *my_temp_taby = new str_tab();
+
+    my_temp_tabx->lb = new int[2*nc];
+    my_temp_tabx->up = new int[2*nc];
+    my_temp_tabx->pos1 = new int[2*nc];
+    my_temp_tabx->pos2 = new int[2*nc];
+    my_temp_tabx->value = new double[2*nc];
+
+
+    my_temp_taby->lb = new int[2*nc];
+    my_temp_taby->up = new int[2*nc];
+    my_temp_taby->pos1 = new int[2*nc];
+    my_temp_taby->pos2 = new int[2*nc];
+    my_temp_taby->value = new double[2*nc];
+
+
+    for(int i=0;i<nc;i++){
+        cout<<comb2[i][0]<<" "<<comb2[i][1]<<endl;
+        par->comb1 = int(comb2[i][0]);
+        par->comb2 = int(comb2[i][1]);
+        Sivia(*R,par);
+        //cout << par->intervalIn[0]<<";"<<par->intervalIn[1]  <<endl;
+        double lbx,ubx,lby,uby;
+        lbx = par->intervalIn[0].lb();
+        ubx = par->intervalIn[0].ub();
+        lby = par->intervalIn[1].lb();
+        uby = par->intervalIn[1].ub();
+        //cout << lbx<<";"<<ubx<<";"<<lby<<";"<<uby <<endl;
+
+        my_tabx->lb[i] = 1;
+        my_tabx->lb[nc+i] = 0;
+        my_tabx->up[i] = 0;
+        my_tabx->up[nc+i] = 1;
+        my_tabx->pos1[i] = par->comb1;
+        my_tabx->pos2[i] = par->comb2;
+        my_tabx->pos1[nc+i] = par->comb1;
+        my_tabx->pos2[nc+i] = par->comb2;
+        my_tabx->value[nc+i] = ubx;
+        my_tabx->value[i] = lbx;
+
+        my_taby->lb[i] = 1;
+        my_taby->lb[i+nc] = 0;
+        my_taby->up[i] = 0;
+        my_taby->up[nc+i] = 1;
+        my_taby->pos1[i] = par->comb1;
+        my_taby->pos2[i] = par->comb2;
+        my_taby->pos1[nc+i] = par->comb1;
+        my_taby->pos2[nc+i] = par->comb2;
+        my_taby->value[nc+i] = uby;
+        my_taby->value[i] = lby;
+
+        my_temp_tabx->lb[i] = 1;
+        my_temp_tabx->lb[nc+i] = 0;
+        my_temp_tabx->up[i] = 0;
+        my_temp_tabx->up[nc+i] = 1;
+        my_temp_tabx->pos1[i] = par->comb1;
+        my_temp_tabx->pos2[i] = par->comb2;
+        my_temp_tabx->pos1[nc+i] = par->comb1;
+        my_temp_tabx->pos2[nc+i] = par->comb2;
+        my_temp_tabx->value[nc+i] = ubx;
+        my_temp_tabx->value[i] = lbx;
+
+        my_temp_taby->lb[i] = 1;
+        my_temp_taby->lb[i+nc] = 0;
+        my_temp_taby->up[i] = 0;
+        my_temp_taby->up[nc+i] = 1;
+        my_temp_taby->pos1[i] = par->comb1;
+        my_temp_taby->pos2[i] = par->comb2;
+        my_temp_taby->pos1[nc+i] = par->comb1;
+        my_temp_taby->pos2[nc+i] = par->comb2;
+        my_temp_taby->value[nc+i] = uby;
+        my_temp_taby->value[i] = lby;
+    }
+
+
+    std::vector<double> sortedvector (my_tabx->value,my_tabx->value+2*nc);
+
+    // using default comparison (operator <):
+    std::sort (sortedvector.begin(), sortedvector.begin()+2*nc);
+
+//    double myints[][];
+//    std::vector<int> myvector (myints, myints+8);
+    std::cout << "myvector contains:";
+    for(int i=0;i<2*nc;i++){
+        int j=0;
+        for (std::vector<double>::iterator it=sortedvector.begin(); it!=sortedvector.end(); ++it){
+//            std::cout << ' ' << *it;
+            if(my_temp_tabx->value[i]==*it){
+                my_tabx->lb[j] = my_temp_tabx->lb[i];
+                my_tabx->up[j] = my_temp_tabx->up[i];
+                my_tabx->pos1[j] = my_temp_tabx->pos1[i];
+                my_tabx->pos2[j] = my_temp_tabx->pos2[i];
+                my_tabx->value[j] = my_temp_tabx->value[i];
+            }
+            j++;
+        }
+    }
+    for(int i=0;i<2*nc;i++){
+        cout<<my_temp_tabx->value[i]<<";"<<my_temp_tabx->pos1[i]<<my_temp_tabx->pos2[i]<<"|";
+    }
+    cout<<"\n";
+    std::cout << "myvector2 contains:";
+    for(int i=0;i<2*nc;i++){
+        cout<<my_tabx->value[i]<<";"<<my_tabx->pos1[i]<<my_tabx->pos2[i]<<"|";
+
+    }
+    std::cout << '\n';
+
+    repaint();
+
+    if (timeinfo){
+        QString mess = "Execution time : ";
+        mess.append(QString::number(tgomne.elapsed()));mess.append(" ms");
+        QMessageBox::information(this,"Info",mess);
+    }
+    ui->InterSpinBox->setValue(par->q);
+}
+
 // Call simulation 'Soft Constraints'
-void MainWindow::on_ButtonFindSol_clicked()
-{
+void MainWindow::on_ButtonFindSol_clicked(){
+
     if (first_simu == false){
         QMessageBox::warning(this,"Abort process",
         "To run the alogrithm at a given time, first you need to run a simulation.\nYou can stop it before the end by holding the STOP button.\nYour current simulation will end.");
@@ -601,6 +796,11 @@ void MainWindow::on_ButtonGOMNE_SLAM_clicked()
 {
    drawarrow=1;Simu(3);
 }
+void MainWindow::on_ButtonPair_clicked()
+{
+    Simu(5);
+}
+
 // Create a delay to give the GUI time to plot results
 void MainWindow::delay()
 {
@@ -631,3 +831,4 @@ void MainWindow::on_BeaconPosSpinBox_valueChanged(double arg1)
 {
     par->beacon_interval = arg1;
 }
+

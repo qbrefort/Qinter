@@ -3,6 +3,20 @@
 #include <QDebug>
 #include <QMainWindow>
 
+#include "sivia.h"
+#include <math.h>
+#include <algorithm>
+
+#include <stdlib.h>
+
+struct str_tab{
+    double* value;
+    int* pos1;
+    int* pos2;
+    int* lb;
+    int* up;
+};
+
 namespace Ui {
 class MainWindow;
 }
@@ -20,9 +34,11 @@ public:
     void RobotTraj();
     void Simu(int method);
     void SLAM(int step);
+    void Pair();
     void GOMNE_fixed_q();
     void Zoom(int step);
     double sign(double a);
+    unsigned nChoosek( unsigned n, unsigned k );
 
 private:
     Ui::MainWindow *ui;
@@ -58,6 +74,7 @@ private slots:
     void on_ButtonGOMNE_SLAM_clicked();
     void on_step_SpinBox_valueChanged(double arg1);
     void on_BeaconPosSpinBox_valueChanged(double arg1);
+    void on_ButtonPair_clicked();
 };
 
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1067</width>
-    <height>682</height>
+    <width>1069</width>
+    <height>716</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <x>10</x>
       <y>4</y>
       <width>407</width>
-      <height>634</height>
+      <height>667</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -477,6 +477,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="ButtonPair">
+       <property name="text">
+        <string>TEST</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayout_7">
        <item>
         <widget class="QLabel" name="label_Epsilon_3">
@@ -705,7 +712,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1067</width>
+     <width>1069</width>
      <height>25</height>
     </rect>
    </property>

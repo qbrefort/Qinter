@@ -18,6 +18,8 @@ struct sivia_struct{
     double *speedx;
     double *speedy;
     double *speed;
+    int comb1,comb2;
+    int pairs;
     int isinside;
     int q;
     int nb_beacon;
@@ -34,6 +36,7 @@ struct sivia_struct{
     vector<IntervalVector> vin;
     vector<IntervalVector> vper;
     vector<IntervalVector> vin_prev;
+    vector<Interval> intervalIn;
     vector<double> ratio_area;
 };
 
@@ -54,7 +57,7 @@ public:
      * with the colors "pencolor" and "brushcolor".
      */
     void contract_and_draw(Ctc& c, IntervalVector& box,IntervalVector& iinside,int isctcinsside,struct sivia_struct *my_struct,int& nbox,  const QColor & pencolor, const QColor & brushcolor);
-    unsigned nChoosek( unsigned n, unsigned k );
+
 
 private:
     repere& R;

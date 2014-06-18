@@ -4,19 +4,7 @@
 
 #include <stdlib.h>
 
-unsigned Sivia::nChoosek( unsigned n, unsigned k )
-{
-    if (k > n) return 0;
-    if (k * 2 > n) k = n-k;
-    if (k == 0) return 1;
 
-    int result = n;
-    for( int i = 2; i <= k; ++i ) {
-        result *= (n-i+1);
-        result /= i;
-    }
-    return result;
-}
 
 void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside,int isctcinside,struct sivia_struct *my_struct,int& nbox, const QColor & pencolor, const QColor & brushcolor) {
     IntervalVector X0= X;       // get a copy
@@ -124,43 +112,19 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
     int ninbox = 0;
     vector<Ctc*> vec_in1,vec_out1;
 
-    int t, p;
-    t=n;
-    p=2;
 
-    std::vector<bool> v(t);
-    std::fill(v.begin() + p, v.end(), true);
+    if (my_struct->pairs ==1){
+        vec_in1.push_back(vec_in.at(my_struct->comb1-1));
+        vec_in1.push_back(vec_in.at(my_struct->comb2-1));
 
-
-    unsigned nc = nChoosek(t,p);
-    int comb[nc*2];
-    int cpt=0;
-    do {
-        for (int i = 0; i < t; ++i) {
-            if (!v[i]) {
-                comb[cpt]=i+1;
-                cpt++;
-            }
-
-        }
-    } while (std::next_permutation(v.begin(), v.end()));
-    int comb2[nc][2];
-    int j=0;
-    for(int i=0;i<nc*2;i=i+2){
-        comb2[j][0] = comb[i];
-        comb2[j][1] = comb[i+1];
-        j++;
-    }
-    for(int i=0;i<nc;i++){
-        cout<<comb2[i][0]<<" "<<comb2[i][1]<<endl;
+        vec_out1.push_back(vec_out.at(my_struct->comb1-1));
+        vec_out1.push_back(vec_out.at(my_struct->comb2-1));
     }
 
-    int i=2;
-    vec_in1.push_back(vec_in.at(comb2[i][0]));
-    vec_in1.push_back(vec_in.at(comb2[i][1]));
-
-    vec_out1.push_back(vec_out.at(comb2[i][0]));
-    vec_out1.push_back(vec_out.at(comb2[i][1]));
+    else{
+        vec_in1 = vec_in;
+        vec_out1 = vec_out;
+    }
 
     CtcUnion inside(vec_in1);
     CtcCompo outside(vec_out1);
@@ -198,7 +162,7 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
     }
 
     double tx[ninbox],ty[ninbox],tz[ninbox];
-
+    double xmin=100,xmax=-100,ymin=100,ymax=-100;
     //cout<<"next"<<ninbox<<endl;
     for(int i=0;i<ninbox;i++){
         IntervalVector cur = (my_struct->vin.back());
@@ -208,8 +172,18 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
         Interval ycur=cur[1];
         tx[i]=xcur.mid();
         ty[i]=ycur.mid();
+
+        if(xcur.lb()<xmin) xmin=xcur.lb();
+        if(xcur.ub()>xmax) xmax=xcur.ub();
+        if(ycur.lb()<ymin) ymin=ycur.lb();
+        if(ycur.ub()>ymax) ymax=ycur.ub();
+
         my_struct->vin.pop_back();
     }
+    my_struct->intervalIn.clear();
+    my_struct->intervalIn.resize(2);
+    my_struct->intervalIn[0] = Interval(xmin,xmax);
+    my_struct->intervalIn[1] = Interval(ymin,ymax);
 
     for(int i=0;i<ninbox;i++){
         IntervalVector cur = (my_struct->vper.back());
