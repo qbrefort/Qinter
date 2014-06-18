@@ -532,9 +532,7 @@ void MainWindow::Pair(){
     // using default comparison (operator <):
     std::sort (sortedvector.begin(), sortedvector.begin()+2*nc);
 
-//    double myints[][];
-//    std::vector<int> myvector (myints, myints+8);
-    std::cout << "myvector contains:";
+
     for(int i=0;i<2*nc;i++){
         int j=0;
         for (std::vector<double>::iterator it=sortedvector.begin(); it!=sortedvector.end(); ++it){
@@ -549,17 +547,85 @@ void MainWindow::Pair(){
             j++;
         }
     }
+    std::vector<double> sortedvectory (my_taby->value,my_taby->value+2*nc);
+
+    // using default comparison (operator <):
+    std::sort (sortedvectory.begin(), sortedvectory.begin()+2*nc);
+
     for(int i=0;i<2*nc;i++){
-        cout<<my_temp_tabx->value[i]<<";"<<my_temp_tabx->pos1[i]<<my_temp_tabx->pos2[i]<<"|";
+        int j=0;
+        for (std::vector<double>::iterator it=sortedvectory.begin(); it!=sortedvectory.end(); ++it){
+//            std::cout << ' ' << *it;
+            if(my_temp_taby->value[i]==*it){
+                my_taby->lb[j] = my_temp_taby->lb[i];
+                my_taby->up[j] = my_temp_taby->up[i];
+                my_taby->pos1[j] = my_temp_taby->pos1[i];
+                my_taby->pos2[j] = my_temp_taby->pos2[i];
+                my_taby->value[j] = my_temp_taby->value[i];
+            }
+            j++;
+        }
+    }
+    std::cout << "myvectorx contains:";
+    for(int i=0;i<2*nc;i++){
+        cout<<my_temp_tabx->value[i]<<";"<<my_temp_tabx->pos1[i]<<my_temp_tabx->pos2[i]<<";"<<my_temp_tabx->lb[i]<<"|";
     }
     cout<<"\n";
-    std::cout << "myvector2 contains:";
+    std::cout << "myvectorx2 contains:";
     for(int i=0;i<2*nc;i++){
-        cout<<my_tabx->value[i]<<";"<<my_tabx->pos1[i]<<my_tabx->pos2[i]<<"|";
-
+        cout<<my_tabx->value[i]<<";"<<my_tabx->pos1[i]<<my_tabx->pos2[i]<<";"<<my_tabx->lb[i]<<"|";
     }
-    std::cout << '\n';
+    cout<<"\n";
+    std::cout << "myvectory contains:";
+    for(int i=0;i<2*nc;i++){
+        cout<<my_temp_taby->value[i]<<";"<<my_temp_taby->pos1[i]<<my_temp_taby->pos2[i]<<";"<<my_temp_taby->lb[i]<<"|";
+    }
+    cout<<"\n";
+    std::cout << "myvectory2 contains:";
+    for(int i=0;i<2*nc;i++){
+        cout<<my_taby->value[i]<<";"<<my_taby->pos1[i]<<my_taby->pos2[i]<<";"<<my_taby->lb[i]<<"|";
+    }
+    std::cout << endl<<"Imax:";
+    int Imax=0;
+    int Imaxy=0;
+    int tab_imax[2*nc];
+    int tab_imaxy[2*nc];
+    for(int i=0;i<2*nc;i++){
+        if((my_tabx->up[i])==0){   Imax++;}
+        if((my_tabx->up[i])==1){   Imax--;}
+        tab_imax[i] = Imax;
+        if((my_taby->up[i])==0){   Imaxy++;}
+        if((my_taby->up[i])==1){   Imaxy--;}
+        tab_imaxy[i] = Imaxy;
+        cout<<Imax;
+    }
+    Imax = -20;
+    int indmax;
+    for(int i=0;i<2*nc;i++){
+        if(tab_imax[i]>Imax){
+            indmax= i;
+            Imax = tab_imax[i];
+        }
+    }
+    int indmaxy;
+    Imaxy = -20;
+    for(int i=0;i<2*nc;i++){
+        if(tab_imaxy[i]>Imaxy){
+            indmaxy= i;
+            Imaxy = tab_imaxy[i];
+        }
+    }
 
+    int goSivx1 = my_tabx->pos1[indmax];
+    int goSivy1 = my_taby->pos1[indmaxy];
+    int goSivx2 = my_tabx->pos2[indmax];
+    int goSivy2 = my_taby->pos2[indmaxy];
+
+    par->comb1=goSivx1;
+    par->comb2=goSivx2;
+    Sivia(*R,par);
+    cout<<endl;
+    cout<<"Imaxtab:"<<Imax<<"\n"<<endl;
     repaint();
 
     if (timeinfo){
