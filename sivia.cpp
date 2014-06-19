@@ -179,7 +179,7 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
 
 
         for(int i=0;i<nc;i++){
-            cout<<comb2[i][0]<<" "<<comb2[i][1]<<endl;
+            //cout<<comb2[i][0]<<" "<<comb2[i][1]<<endl;
             my_struct->comb1 = int(comb2[i][0]);
             my_struct->comb2 = int(comb2[i][1]);
 
@@ -187,8 +187,8 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
 
             int ci = my_struct->comb1;
             int cj = my_struct->comb2;
-            double d_tilde_i = r[i];
-            double d_tilde_j = r[j];
+            double d_tilde_i = r[ci];
+            double d_tilde_j = r[cj];
 
             double Delta_i = my_struct->beacon_interval*r[ci]/100;
             double Delta_j = my_struct->beacon_interval*r[cj]/100;
@@ -206,21 +206,21 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
             double sx_j = x[cj];
             double sy_j = y[cj];
 
-            double v = my_struct->speed[ci];
+            double v = my_struct->speed[my_struct->iteration];
 
             double eps_vdt = v*my_struct->step;
             double eps0 = my_struct->epsilon_sivia;
 
-            double v_tilde_i = pow(d_tilde_i,2) + pow(Delta_i,2) + pow(x0-sx_i,2) + pow(y0-sy_i,2) - 0.5*pow(eps_vdt+eps0,2);
-            double v_tilde_j = pow(d_tilde_j,2) + pow(Delta_j,2) + pow(x0-sx_j,2) + pow(y0-sy_j,2) - 0.5*pow(eps_vdt+eps0,2);
+            double v_tilde_i = pow(d_tilde_i,2) + pow(Delta_i,2) - pow(x0-sx_i,2) - pow(y0-sy_i,2) - 0.5*pow(eps_vdt+eps0,2);
+            double v_tilde_j = pow(d_tilde_j,2) + pow(Delta_j,2) - pow(x0-sx_j,2) - pow(y0-sy_j,2) - 0.5*pow(eps_vdt+eps0,2);
 
             double delta_i = 2*d_tilde_i*Delta_i + 0.5*pow(eps_vdt+eps0,2);
             double delta_j = 2*d_tilde_i*Delta_j + 0.5*pow(eps_vdt+eps0,2);
 
             double ai1 = 2*(x0-sx_i);
-            double ai2 = 2*(y0-sx_i);
+            double ai2 = 2*(y0-sy_i);
             double aj1 = 2*(x0-sx_j);
-            double aj2 = 2*(y0-sx_j);
+            double aj2 = 2*(y0-sy_j);
 
             double det = 1/(ai1*aj2-ai2*aj1);
 
@@ -340,21 +340,21 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
                 j++;
             }
         }
-        std::cout << "myvectorx contains:";
-        for(int i=0;i<2*nc;i++){
-            cout<<my_temp_tabx->value[i]<<";"<<my_temp_tabx->pos1[i]<<my_temp_tabx->pos2[i]<<";"<<my_temp_tabx->lb[i]<<"|";
-        }
-        cout<<"\n";
+//        std::cout << "myvectorx contains:";
+//        for(int i=0;i<2*nc;i++){
+//            cout<<my_temp_tabx->value[i]<<";"<<my_temp_tabx->pos1[i]<<my_temp_tabx->pos2[i]<<";"<<my_temp_tabx->lb[i]<<"|";
+//        }
+//        cout<<"\n";
         std::cout << "myvectorx2 contains:";
         for(int i=0;i<2*nc;i++){
             cout<<my_tabx->value[i]<<";"<<my_tabx->pos1[i]<<my_tabx->pos2[i]<<";"<<my_tabx->lb[i]<<"|";
         }
         cout<<"\n";
-        std::cout << "myvectory contains:";
-        for(int i=0;i<2*nc;i++){
-            cout<<my_temp_taby->value[i]<<";"<<my_temp_taby->pos1[i]<<my_temp_taby->pos2[i]<<";"<<my_temp_taby->lb[i]<<"|";
-        }
-        cout<<"\n";
+//        std::cout << "myvectory contains:";
+//        for(int i=0;i<2*nc;i++){
+//            cout<<my_temp_taby->value[i]<<";"<<my_temp_taby->pos1[i]<<my_temp_taby->pos2[i]<<";"<<my_temp_taby->lb[i]<<"|";
+//        }
+//        cout<<"\n";
         std::cout << "myvectory2 contains:";
         for(int i=0;i<2*nc;i++){
             cout<<my_taby->value[i]<<";"<<my_taby->pos1[i]<<my_taby->pos2[i]<<";"<<my_taby->lb[i]<<"|";
@@ -371,7 +371,7 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
             if((my_taby->up[i])==0){   Imaxy++;}
             if((my_taby->up[i])==1){   Imaxy--;}
             tab_imaxy[i] = Imaxy;
-            cout<<Imax;
+            cout<<Imax<<"-";
         }
         Imax = -20;
         int indmax;
@@ -403,6 +403,12 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
 
         vec_out1.push_back(vec_out.at(my_struct->comb1-1));
         vec_out1.push_back(vec_out.at(my_struct->comb2-1));
+        double rxmin = my_struct->robot_position_found[0] + my_tabx->value[indmax]-1;
+        double rxmax = my_struct->robot_position_found[0] + my_tabx->value[indmax]+1;
+        double rymin = my_struct->robot_position_found[1] + my_taby->value[indmax]-1;
+        double rymax = my_struct->robot_position_found[1] + my_taby->value[indmax]+1;
+        R.DrawBox(rxmin,rxmax,rymin,rymax,QPen(Qt::black),QBrush(Qt::NoBrush));
+        cout<<"Moved of:["<<my_tabx->value[indmax]<<";"<<my_taby->value[indmax]<<"]"<<endl<<endl;
     }
 
     else{

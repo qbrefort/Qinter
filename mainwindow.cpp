@@ -395,6 +395,7 @@ void MainWindow::Pair(){
     RobotTraj();
     Init();
     ui->BeaconSpinBox->setValue(5);
+    ui->step_SpinBox->setValue(1);
     par->isinside=0;
     par->q = ui->BeaconSpinBox->value();
 
