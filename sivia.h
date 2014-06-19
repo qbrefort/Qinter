@@ -22,6 +22,7 @@ struct sivia_struct{
     double *z;
     double robot_position_found[3];
     double robot_position[4];
+    double r_pos_found_prev[3];
     double *theta;
     double *speedx;
     double *speedy;

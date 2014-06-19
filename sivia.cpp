@@ -116,7 +116,7 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
     int ninbox = 0;
     vector<Ctc*> vec_in1,vec_out1;
 
-
+    double rxmin,rxmax,rymin,rymax;
     if (my_struct->pairs ==1){
 
         str_tab *my_tabx = new str_tab();
@@ -197,18 +197,21 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
                 x0=y0=0;
             }
             else{
-                x0=my_struct->robot_position_found[0];
-                y0=my_struct->robot_position_found[1];
+//                x0=my_struct->robot_position_found[0];
+//                y0=my_struct->robot_position_found[1];
+                x0=my_struct->r_pos_found_prev[0];
+                y0=my_struct->r_pos_found_prev[1];
             }
+
             double sx_i = x[ci];
             double sy_i = y[ci];
 
             double sx_j = x[cj];
             double sy_j = y[cj];
 
-            double v = my_struct->speed[my_struct->iteration];
+            double speedi = my_struct->speed[my_struct->iteration];
 
-            double eps_vdt = v*my_struct->step;
+            double eps_vdt = speedi*my_struct->step;
             double eps0 = my_struct->epsilon_sivia;
 
             double v_tilde_i = pow(d_tilde_i,2) + pow(Delta_i,2) - pow(x0-sx_i,2) - pow(y0-sy_i,2) - 0.5*pow(eps_vdt+eps0,2);
@@ -292,14 +295,6 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
             my_temp_taby->value[nc+i] = uby;
             my_temp_taby->value[i] = lby;
         }
-
-
-
-
-
-
-
-
 
         std::vector<double> sortedvector (my_tabx->value,my_tabx->value+2*nc);
 
@@ -403,13 +398,14 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
 
         vec_out1.push_back(vec_out.at(my_struct->comb1-1));
         vec_out1.push_back(vec_out.at(my_struct->comb2-1));
-        double rxmin = my_struct->robot_position_found[0] + my_tabx->value[indmax]-1;
-        double rxmax = my_struct->robot_position_found[0] + my_tabx->value[indmax]+1;
-        double rymin = my_struct->robot_position_found[1] + my_taby->value[indmax]-1;
-        double rymax = my_struct->robot_position_found[1] + my_taby->value[indmax]+1;
-        R.DrawBox(rxmin,rxmax,rymin,rymax,QPen(Qt::black),QBrush(Qt::NoBrush));
+        rxmin = my_struct->r_pos_found_prev[0] + my_tabx->value[indmax]-0.1;
+        rxmax = my_struct->r_pos_found_prev[0] + my_tabx->value[indmax]+0.1;
+        rymin = my_struct->r_pos_found_prev[1] + my_taby->value[indmax]-0.1;
+        rymax = my_struct->r_pos_found_prev[1] + my_taby->value[indmax]+0.1;
+
         cout<<"Moved of:["<<my_tabx->value[indmax]<<";"<<my_taby->value[indmax]<<"]"<<endl<<endl;
     }
+
 
     else{
         vec_in1 = vec_in;
@@ -496,7 +492,8 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
     my_struct->robot_position_found[2] = zin;
     for(int i=0;i<n;i++)
         R.DrawEllipse(x[i],y[i],re,QPen(Qt::black),QBrush(Qt::NoBrush));
-
+    if(my_struct->pairs == 1)
+        R.DrawBox(rxmin,rxmax,rymin,rymax,QPen(Qt::black),QBrush(Qt::NoBrush));
     my_struct->vin.clear();
     my_struct->vper.clear();
     vec_out.clear();

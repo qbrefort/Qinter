@@ -19,8 +19,6 @@ repere *R;
 sivia_struct *par = new sivia_struct(); // SIVIA parameters
 
 
-
-
 double MainWindow::sign(double a){
     if (a >= 0)
         return 1;
@@ -106,7 +104,7 @@ void MainWindow::GenTraj(){
         par->theta[i] = thetav[i];
         par->speedx[i] = (xv[i]-xv[i-1]);
         par->speedy[i] = (yv[i]-yv[i-1]);
-//        par->speed[i] = sqrt(pow(par->speedx[i],2)+pow(par->speedy[i],2));
+        //par->speed[i] = sqrt(pow(par->speedx[i],2)+pow(par->speedy[i],2));
     }
 }
 
