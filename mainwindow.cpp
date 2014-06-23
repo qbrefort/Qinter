@@ -190,7 +190,8 @@ void MainWindow::Simu(int method){
             double spx = (xv[int(i)]-xv[ip]);
             double spy = (yv[int(i)]-yv[ip]);
             double dt = 0.02;
-            par->speed[int(i)] = sqrt(pow(spx,2)+pow(spy,2))/dt;
+//            par->speed[int(i)] = sqrt(pow(spx,2)+pow(spy,2))/((i-ip)*dt);
+            par->speed[int(i)] = ((i-ip)*dt);
             //cout << par->speed[int(i)] << endl;
         }
         ip = i;
@@ -232,32 +233,6 @@ void MainWindow::Simu(int method){
     mess.append(QString::number(area));mess.append("\n");
     mess.append(QString::number(cantlocalize));mess.append("\n");
     QMessageBox::information(this,"End of Simulation",mess);
-}
-
-// Update current window and update certain parameter for the simulation
-void MainWindow::repaint(){
-
-    RobotTraj();
-    uint cpt=0;
-    for(double i=0;i<6500-111;i=i+10){
-        R->DrawLine(xv[i],yv[i],xv[i+10],yv[i+10],QPen(Qt::darkGreen));
-        cpt++;
-    }
-    if(drawarrow==1)    R->DrawArrow(par->robot_position[0],par->robot_position[1],
-                                     step*par->speedx[par->iteration-step],step*par->speedy[par->iteration-step]);
-    R->DrawRobot(par->robot_position[0],par->robot_position[1],par->robot_position[3]);
-    double xins=par->robot_position_found[0];
-    double yins=par->robot_position_found[1];
-    double zins=par->robot_position_found[2];
-    if (drawapproxpos==1)   R->DrawRobot2(xins,yins,par->robot_position[3]);
-    double errdist = sqrt(pow(xins-par->robot_position[0],2)+pow(yins-par->robot_position[1],2));
-    if (isnan(errdist)==0){
-        errpos.push_back(errdist);
-    }
-    else    cantlocalize++;
-    ui->ratio_area_lcd->display(par->areain/(par->areain+par->areap)*100);
-    par->ratio_area.push_back(par->areain/(par->areap+par->areain)*100);
-    R->Save("paving");
 }
 
 void MainWindow::SLAM(int step){
@@ -388,12 +363,15 @@ void MainWindow::GOMNE_fixed_q(){
 
 
 void MainWindow::Pair(){
+    if (ui->step_SpinBox->value() >= 200){
+        QMessageBox::warning(this,"Warning",
+        "To run properly please choose a value of step<200.\nRunning with step=50 for accurate results");
+        ui->step_SpinBox->setValue((50));
+    }
     QElapsedTimer tgomne;
     tgomne.start();
     RobotTraj();
     Init();
-    ui->BeaconSpinBox->setValue(5);
-    ui->step_SpinBox->setValue(1);
     par->isinside=0;
     par->q = ui->BeaconSpinBox->value();
 
@@ -531,6 +509,33 @@ void MainWindow::on_ButtonStartParam_clicked()
     }
 
 }
+
+// Update current window and update certain parameter for the simulation
+void MainWindow::repaint(){
+
+    RobotTraj();
+    uint cpt=0;
+    for(double i=0;i<6500-111;i=i+10){
+        R->DrawLine(xv[i],yv[i],xv[i+10],yv[i+10],QPen(Qt::darkGreen));
+        cpt++;
+    }
+    if(drawarrow==1)    R->DrawArrow(par->robot_position[0],par->robot_position[1],
+                                     step*par->speedx[par->iteration-step],step*par->speedy[par->iteration-step]);
+    R->DrawRobot(par->robot_position[0],par->robot_position[1],par->robot_position[3]);
+    double xins=par->robot_position_found[0];
+    double yins=par->robot_position_found[1];
+    double zins=par->robot_position_found[2];
+    if (drawapproxpos==1)   R->DrawRobot2(xins,yins,par->robot_position[3]);
+    double errdist = sqrt(pow(xins-par->robot_position[0],2)+pow(yins-par->robot_position[1],2));
+    if (isnan(errdist)==0){
+        errpos.push_back(errdist);
+    }
+    else    cantlocalize++;
+    ui->ratio_area_lcd->display(par->areain/(par->areain+par->areap)*100);
+    par->ratio_area.push_back(par->areain/(par->areap+par->areain)*100);
+    R->Save("paving");
+}
+
 
 void MainWindow::on_ErrSpinBox_1_valueChanged(double arg1)
 {

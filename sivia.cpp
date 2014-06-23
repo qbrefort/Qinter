@@ -340,21 +340,21 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
 //            cout<<my_temp_tabx->value[i]<<";"<<my_temp_tabx->pos1[i]<<my_temp_tabx->pos2[i]<<";"<<my_temp_tabx->lb[i]<<"|";
 //        }
 //        cout<<"\n";
-        std::cout << "myvectorx2 contains:";
-        for(int i=0;i<2*nc;i++){
-            cout<<my_tabx->value[i]<<";"<<my_tabx->pos1[i]<<my_tabx->pos2[i]<<";"<<my_tabx->lb[i]<<"|";
-        }
-        cout<<"\n";
-//        std::cout << "myvectory contains:";
+//        std::cout << "myvectorx2 contains:";
 //        for(int i=0;i<2*nc;i++){
-//            cout<<my_temp_taby->value[i]<<";"<<my_temp_taby->pos1[i]<<my_temp_taby->pos2[i]<<";"<<my_temp_taby->lb[i]<<"|";
+//            cout<<my_tabx->value[i]<<";"<<my_tabx->pos1[i]<<my_tabx->pos2[i]<<";"<<my_tabx->lb[i]<<"|";
 //        }
 //        cout<<"\n";
-        std::cout << "myvectory2 contains:";
-        for(int i=0;i<2*nc;i++){
-            cout<<my_taby->value[i]<<";"<<my_taby->pos1[i]<<my_taby->pos2[i]<<";"<<my_taby->lb[i]<<"|";
-        }
-        std::cout << endl<<"Imax:";
+////        std::cout << "myvectory contains:";
+////        for(int i=0;i<2*nc;i++){
+////            cout<<my_temp_taby->value[i]<<";"<<my_temp_taby->pos1[i]<<my_temp_taby->pos2[i]<<";"<<my_temp_taby->lb[i]<<"|";
+////        }
+////        cout<<"\n";
+//        std::cout << "myvectory2 contains:";
+//        for(int i=0;i<2*nc;i++){
+//            cout<<my_taby->value[i]<<";"<<my_taby->pos1[i]<<my_taby->pos2[i]<<";"<<my_taby->lb[i]<<"|";
+//        }
+//        std::cout << endl<<"Imax:";
         int Imax=0;
         int Imaxy=0;
         int tab_imax[2*nc];
@@ -385,25 +385,33 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
             }
         }
 
-        int goSivx1 = my_tabx->pos1[indmax];
-        int goSivy1 = my_taby->pos1[indmaxy];
-        int goSivx2 = my_tabx->pos2[indmax];
-        int goSivy2 = my_taby->pos2[indmaxy];
-
-        my_struct->comb1 = goSivx1;
-        my_struct->comb2 = goSivx2;
 
         vec_in1.push_back(vec_in.at(my_struct->comb1-1));
         vec_in1.push_back(vec_in.at(my_struct->comb2-1));
 
         vec_out1.push_back(vec_out.at(my_struct->comb1-1));
         vec_out1.push_back(vec_out.at(my_struct->comb2-1));
-        rxmin = my_struct->r_pos_found_prev[0] + my_tabx->value[indmax]-0.1;
-        rxmax = my_struct->r_pos_found_prev[0] + my_tabx->value[indmax]+0.1;
-        rymin = my_struct->r_pos_found_prev[1] + my_taby->value[indmax]-0.1;
-        rymax = my_struct->r_pos_found_prev[1] + my_taby->value[indmax]+0.1;
 
-        cout<<"Moved of:["<<my_tabx->value[indmax]<<";"<<my_taby->value[indmax]<<"]"<<endl<<endl;
+        double ubx_found=0,uby_found=0;
+        for(int i=0;i<2*nc;i++){
+            if(my_tabx->pos1[indmax] == my_tabx->pos1[i] && my_tabx->pos2[indmax] == my_tabx->pos2[i] && my_tabx->up[i] == 1)
+            {ubx_found = my_tabx->value[i];}
+            if(my_taby->pos1[indmaxy] == my_taby->pos1[i] && my_taby->pos2[indmaxy] == my_taby->pos2[i] && my_taby->up[i] == 1)
+            {uby_found = my_taby->value[i];}
+        }
+
+        rxmin = my_struct->r_pos_found_prev[0] + my_tabx->value[indmax];
+        rxmax = my_struct->r_pos_found_prev[0] + ubx_found;
+        rymin = my_struct->r_pos_found_prev[1] + my_taby->value[indmaxy];
+        rymax = my_struct->r_pos_found_prev[1] + uby_found;
+
+        my_struct->r_pos_found_prev[0] += (ubx_found + my_tabx->value[indmax])/2;
+        my_struct->r_pos_found_prev[1] += (uby_found + my_taby->value[indmaxy])/2;
+
+
+
+        cout<<"\nMoved of:["<<my_tabx->value[indmax]<<";"<<ubx_found<<"] || ["<<my_taby->value[indmaxy]<<";"<<uby_found<<"]"<<endl<<endl;
+
     }
 
 
@@ -422,7 +430,7 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
 //    IntervalVector box(3);box[0]=box[1]=Interval(-25,25);box[2]=Interval(0,2);
     IntervalVector viinside(3);
     //vin.resize(4);
-
+    if(my_struct->pairs!=1){
     LargestFirst lf;
     stack<IntervalVector> s;
     s.push(box1);
@@ -446,7 +454,7 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
             s.push(boxes.second);
         }
     }
-
+    }
     double tx[ninbox],ty[ninbox],tz[ninbox];
     double xmin=100,xmax=-100,ymin=100,ymax=-100;
     //cout<<"next"<<ninbox<<endl;
@@ -490,6 +498,7 @@ Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
     my_struct->robot_position_found[0] = xin;
     my_struct->robot_position_found[1] = yin;
     my_struct->robot_position_found[2] = zin;
+
     for(int i=0;i<n;i++)
         R.DrawEllipse(x[i],y[i],re,QPen(Qt::black),QBrush(Qt::NoBrush));
     if(my_struct->pairs == 1)
