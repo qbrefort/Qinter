@@ -26,19 +26,6 @@ double MainWindow::sign(double a){
         return -1;
 }
 
-unsigned MainWindow::nChoosek( unsigned n, unsigned k )
-{
-    if (k > n) return 0;
-    if (k * 2 > n) k = n-k;
-    if (k == 0) return 1;
-
-    int result = n;
-    for( int i = 2; i <= k; ++i ) {
-        result *= (n-i+1);
-        result /= i;
-    }
-    return result;
-}
 
 MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
@@ -127,20 +114,20 @@ void MainWindow::Simu(int method){
     par->box.clear();
     par->box.push_back(IntervalVector(2,Interval(-25,25)));
     ui->checkBox->setChecked(false);
-    for(int i=0;i<par->nb_beacon;i++){
+    for(int i=0;i<ui->BeaconSpinBox->value();i++){
         par->x[i]= 1*(25 - rand() % 50);
         par->y[i]= 1*(25 - rand() % 50);
-        par->z[i]= 5-i%4;
         if((rand() % 100) <= probsensorfalse){
-            if (rand() % 1 ==1)
-                par->outliers[i]=1;
-            else par->outliers[i]=-1;
+            if (rand() % 1 ==1){par->outliers[i]=1;}
+            else {par->outliers[i]=-1;}
             nboutlier++;
         }
         else{par->outliers[i]=0;}
     }
-    ui->nbOutlierlcd->display(nboutlier);
     par->nb_beacon = ui->BeaconSpinBox->value();
+    ui->nbOutlierlcd->display(nboutlier);
+    cout<<"\n OUTLIERS: "<<nboutlier<<endl<<endl;
+
     //Log
     ofstream myfile;
     myfile.open ("log_simu.txt");
@@ -368,16 +355,13 @@ void MainWindow::Pair(){
         "To run properly please choose a value of step<200.\nRunning with step=50 for accurate results");
         ui->step_SpinBox->setValue((50));
     }
-    QElapsedTimer tgomne;
-    tgomne.start();
+    QElapsedTimer tpair;
+    tpair.start();
     RobotTraj();
     Init();
-    par->isinside=0;
-    par->q = ui->BeaconSpinBox->value();
 
     par->nb_beacon = ui->BeaconSpinBox->value();
-    //cout<<"q"<<par->q<<endl;
-    ui->EpsilonSpinBox->setValue(0.02);
+
     for (uint i=0;i<100;i++){
        par->err[i] = 0.2;
     }
@@ -397,10 +381,10 @@ void MainWindow::Pair(){
 
     if (timeinfo){
         QString mess = "Execution time : ";
-        mess.append(QString::number(tgomne.elapsed()));mess.append(" ms");
+        mess.append(QString::number(tpair.elapsed()));mess.append(" ms");
         QMessageBox::information(this,"Info",mess);
     }
-    ui->InterSpinBox->setValue(par->q);
+    par->pairs = 0;
 }
 
 // Call simulation 'Soft Constraints'

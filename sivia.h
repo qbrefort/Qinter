@@ -66,6 +66,7 @@ public:
      * Contract "box" with "c" and draw the trace (i.e., the difference between box and c(box))
      * with the colors "pencolor" and "brushcolor".
      */
+    void Sivia_noPair(struct sivia_struct *my_struct);
     void contract_and_draw(Ctc& c, IntervalVector& box,IntervalVector& iinside,int isctcinsside,struct sivia_struct *my_struct,int& nbox,  const QColor & pencolor, const QColor & brushcolor);
     unsigned nChoosek( unsigned n, unsigned k );
 

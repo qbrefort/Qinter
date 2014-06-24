@@ -31,7 +31,6 @@ public:
     void GOMNE_fixed_q();
     void Zoom(int step);
     double sign(double a);
-    unsigned nChoosek( unsigned n, unsigned k );
 
 private:
     Ui::MainWindow *ui;
