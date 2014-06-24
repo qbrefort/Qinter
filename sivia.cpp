@@ -47,7 +47,7 @@ void Sivia::contract_and_draw(Ctc& c, IntervalVector& X,IntervalVector& viinside
     }
 }
 
-void Sivia::Sivia_noPair(struct sivia_struct *my_struct){
+void Sivia::Sivia_Pair(struct sivia_struct *my_struct){
     my_struct->areain = 0;
     my_struct->areap = 0;
     my_struct->isinside=0;
@@ -56,10 +56,11 @@ void Sivia::Sivia_noPair(struct sivia_struct *my_struct){
     double *x=my_struct->x; // vecteur des abcisses des donnees
     double *y=my_struct->y; // vecteur des ordonnees des donnees
     double *r=new double[n]; // vecteur des rayons
-
-
-    double xr=my_struct->robot_position[0],yr=my_struct->robot_position[1];
-
+    double xr=0,yr=0;
+    if(my_struct->iteration!=0){
+        xr=my_struct->robot_position[0];
+        yr=my_struct->robot_position[1];
+    }
     for (int i=0;i<n;i++) {
 //        r[i]= sqrt(pow(xr-x[i],2)+pow(yr-y[i],2)+pow(zr-z[i],2));
         r[i]= sqrt(pow(xr-x[i],2)+pow(yr-y[i],2));
@@ -68,7 +69,6 @@ void Sivia::Sivia_noPair(struct sivia_struct *my_struct){
     }
 
     double re=0.5;
-    vector<Ctc*> vec_in1,vec_out1;
 
     double rxmin,rxmax,rymin,rymax;
 
@@ -320,7 +320,7 @@ void Sivia::Sivia_noPair(struct sivia_struct *my_struct){
             if((my_taby->up[i])==0){   Imaxy++;}
             if((my_taby->up[i])==1){   Imaxy--;}
             tab_imaxy[i] = Imaxy;
-            cout<<Imax<<"-";
+            //cout<<Imax<<"-";
         }
         Imax = -20;
         int indmax;
@@ -330,6 +330,7 @@ void Sivia::Sivia_noPair(struct sivia_struct *my_struct){
                 Imax = tab_imax[i];
             }
         }
+        cout<<indmax<<";"<<Imax;
         int indmaxy;
         Imaxy = -20;
         for(int i=0;i<2*nc;i++){
@@ -338,8 +339,6 @@ void Sivia::Sivia_noPair(struct sivia_struct *my_struct){
                 Imaxy = tab_imaxy[i];
             }
         }
-
-
 
         double ubx_found=0,uby_found=0;
         for(int i=0;i<2*nc;i++){
@@ -367,11 +366,14 @@ void Sivia::Sivia_noPair(struct sivia_struct *my_struct){
         R.DrawEllipse(x[i],y[i],re,QPen(Qt::black),QBrush(Qt::NoBrush));
     if(my_struct->pairs == 1)
         R.DrawBox(rxmin,rxmax,rymin,rymax,QPen(Qt::black),QBrush(Qt::NoBrush));
+    sortedvector.clear();
+    sortedvectory.clear();
+    v.clear();
 }
 
 Sivia::Sivia(repere& R,struct sivia_struct *my_struct) : R(R) {
     if(my_struct->pairs==1){
-        Sivia_noPair(my_struct);
+        Sivia_Pair(my_struct);
     }
     else{
         my_struct->areain = 0;

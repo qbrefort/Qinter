@@ -40,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainW
     par->nb_beacon = ui->BeaconSpinBox->value();;
     par->box.resize(1);
     par->beacon_interval = ui->BeaconPosSpinBox->value();
+    probsensorfalse = ui->probsensorisfalseSpinBox->value();
 }
 
 MainWindow::~MainWindow() {
@@ -105,6 +106,7 @@ void MainWindow::RobotTraj(){
 
 // Launch a simulation given the method, creates a log file and an info window at the end
 void MainWindow::Simu(int method){
+    par->r_pos_found_prev[0]=par->r_pos_found_prev[1]=0;
     first_simu = true;
     double errgomne=0;
     int cpt=0,cpt2=0;
@@ -114,15 +116,27 @@ void MainWindow::Simu(int method){
     par->box.clear();
     par->box.push_back(IntervalVector(2,Interval(-25,25)));
     ui->checkBox->setChecked(false);
-    for(int i=0;i<ui->BeaconSpinBox->value();i++){
-        par->x[i]= 1*(25 - rand() % 50);
-        par->y[i]= 1*(25 - rand() % 50);
-        if((rand() % 100) <= probsensorfalse){
-            if (rand() % 1 ==1){par->outliers[i]=1;}
-            else {par->outliers[i]=-1;}
-            nboutlier++;
+    if(method!=5){
+        for(int i=0;i<ui->BeaconSpinBox->value();i++){
+            par->x[i]= 1*(25 - rand() % 50);
+            par->y[i]= 1*(25 - rand() % 50);
+            if((rand() % 100) <= probsensorfalse){
+                if (rand() % 1 ==1){par->outliers[i]=1;}
+                else {par->outliers[i]=-1;}
+                nboutlier++;
+            }
+            else{par->outliers[i]=0;}
         }
-        else{par->outliers[i]=0;}
+    }
+    else{
+        for(int i=0;i<ui->BeaconSpinBox->value();i++){
+            par->x[i]= 1*(25 - rand() % 50);
+            par->y[i]= 1*(25 - rand() % 50);
+            par->outliers[i]=0;
+        }
+        par->outliers[0]=1;
+        par->outliers[1]=-1;
+        nboutlier=2;
     }
     par->nb_beacon = ui->BeaconSpinBox->value();
     ui->nbOutlierlcd->display(nboutlier);
@@ -372,9 +386,8 @@ void MainWindow::Pair(){
     ui->ErrSpinBox_5->setValue(par->err[4]);
 
     par->pairs = 1;
-
-
     Sivia(*R,par);
+    par->pairs = 0;
     cout<<endl;
     //cout<<"Imaxtab:"<<Imax<<"\n"<<endl;
     repaint();
@@ -384,7 +397,7 @@ void MainWindow::Pair(){
         mess.append(QString::number(tpair.elapsed()));mess.append(" ms");
         QMessageBox::information(this,"Info",mess);
     }
-    par->pairs = 0;
+
 }
 
 // Call simulation 'Soft Constraints'
