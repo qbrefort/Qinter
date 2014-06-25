@@ -57,10 +57,8 @@ void Sivia::Sivia_Pair(struct sivia_struct *my_struct){
     double *y=my_struct->y; // vecteur des ordonnees des donnees
     double *r=new double[n]; // vecteur des rayons
     double xr=0,yr=0;
-    if(my_struct->iteration!=0){
-        xr=my_struct->robot_position[0];
-        yr=my_struct->robot_position[1];
-    }
+    xr=my_struct->robot_position[0];
+    yr=my_struct->robot_position[1];
     for (int i=0;i<n;i++) {
 //        r[i]= sqrt(pow(xr-x[i],2)+pow(yr-y[i],2)+pow(zr-z[i],2));
         r[i]= sqrt(pow(xr-x[i],2)+pow(yr-y[i],2));
@@ -139,8 +137,8 @@ void Sivia::Sivia_Pair(struct sivia_struct *my_struct){
 
             //cout << my_struct->intervalIn[0]<<";"<<my_struct->intervalIn[1]  <<endl;
 
-            int ci = my_struct->comb1;
-            int cj = my_struct->comb2;
+            int ci = my_struct->comb1 -1;
+            int cj = my_struct->comb2 -1;
             double d_tilde_i = r[ci];
             double d_tilde_j = r[cj];
 
@@ -149,6 +147,8 @@ void Sivia::Sivia_Pair(struct sivia_struct *my_struct){
             double x0,y0;
             if(my_struct->iteration == 0){
                 x0=y0=0;
+                my_struct->r_pos_found_prev[0]=0;
+                my_struct->r_pos_found_prev[1]=0;
             }
             else{
 //                x0=my_struct->robot_position_found[0];
@@ -163,7 +163,7 @@ void Sivia::Sivia_Pair(struct sivia_struct *my_struct){
             double sx_j = x[cj];
             double sy_j = y[cj];
 
-            double speedi = my_struct->speed[my_struct->iteration];
+            double speedi = my_struct->maxspeed;
 
             double eps_vdt = speedi*my_struct->step;
             double eps0 = my_struct->epsilon_sivia;
@@ -206,25 +206,25 @@ void Sivia::Sivia_Pair(struct sivia_struct *my_struct){
             //cout << lbx<<";"<<ubx<<";"<<lby<<";"<<uby <<endl;
 
             my_tabx->lb[i] = 1;
-            my_tabx->lb[nc+i] = 0;
+            my_tabx->lb[nc+i-1] = 0;
             my_tabx->up[i] = 0;
-            my_tabx->up[nc+i] = 1;
+            my_tabx->up[nc+i-1] = 1;
             my_tabx->pos1[i] = my_struct->comb1;
             my_tabx->pos2[i] = my_struct->comb2;
-            my_tabx->pos1[nc+i] = my_struct->comb1;
-            my_tabx->pos2[nc+i] = my_struct->comb2;
+            my_tabx->pos1[nc+i-1] = my_struct->comb1;
+            my_tabx->pos2[nc+i-1] = my_struct->comb2;
             my_tabx->value[nc+i] = ubx;
             my_tabx->value[i] = lbx;
 
             my_taby->lb[i] = 1;
-            my_taby->lb[i+nc] = 0;
+            my_taby->lb[i+nc-1] = 0;
             my_taby->up[i] = 0;
-            my_taby->up[nc+i] = 1;
+            my_taby->up[nc+i-1] = 1;
             my_taby->pos1[i] = my_struct->comb1;
             my_taby->pos2[i] = my_struct->comb2;
-            my_taby->pos1[nc+i] = my_struct->comb1;
-            my_taby->pos2[nc+i] = my_struct->comb2;
-            my_taby->value[nc+i] = uby;
+            my_taby->pos1[nc+i-1] = my_struct->comb1;
+            my_taby->pos2[nc+i-1] = my_struct->comb2;
+            my_taby->value[nc+i-1] = uby;
             my_taby->value[i] = lby;
 
             my_temp_tabx->lb[i] = 1;
@@ -356,6 +356,11 @@ void Sivia::Sivia_Pair(struct sivia_struct *my_struct){
         my_struct->r_pos_found_prev[0] += (ubx_found + my_tabx->value[indmax])/2;
         my_struct->r_pos_found_prev[1] += (uby_found + my_taby->value[indmaxy])/2;
 
+//        rxmin = my_struct->r_pos_found_prev[0] - (ubx_found + my_tabx->value[indmax])/2;
+//        rxmax = my_struct->r_pos_found_prev[0] + (ubx_found + my_tabx->value[indmax])/2;
+//        rymin = my_struct->r_pos_found_prev[1] - (uby_found + my_taby->value[indmaxy])/2;
+//        rymax = my_struct->r_pos_found_prev[1] + (uby_found + my_taby->value[indmaxy])/2;
+
 
 
         cout<<"\nMoved of:["<<my_tabx->value[indmax]<<";"<<ubx_found<<"] || ["<<my_taby->value[indmaxy]<<";"<<uby_found<<"]"<<endl<<endl;
@@ -364,8 +369,8 @@ void Sivia::Sivia_Pair(struct sivia_struct *my_struct){
 
     for(int i=0;i<n;i++)
         R.DrawEllipse(x[i],y[i],re,QPen(Qt::black),QBrush(Qt::NoBrush));
-    if(my_struct->pairs == 1)
-        R.DrawBox(rxmin,rxmax,rymin,rymax,QPen(Qt::black),QBrush(Qt::NoBrush));
+    R.DrawEllipse(my_struct->r_pos_found_prev[0],my_struct->r_pos_found_prev[1],0.1,QPen(Qt::red),QBrush(Qt::Dense4Pattern));
+    R.DrawBox(rxmin,rxmax,rymin,rymax,QPen(Qt::black),QBrush(Qt::NoBrush));
     sortedvector.clear();
     sortedvectory.clear();
     v.clear();

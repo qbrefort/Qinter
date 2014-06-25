@@ -40,16 +40,12 @@ MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainW
     par->nb_beacon = ui->BeaconSpinBox->value();;
     par->box.resize(1);
     par->beacon_interval = ui->BeaconPosSpinBox->value();
+    par->maxspeed=0.03;
     probsensorfalse = ui->probsensorisfalseSpinBox->value();
 }
 
 MainWindow::~MainWindow() {
     free(R);
-    free(par->x);
-    free(par->y);
-    free(par->z);
-    free(par->outliers);
-    free(par->err);
     free(par);
     delete ui;
 }
@@ -69,7 +65,7 @@ void MainWindow::Init() {
 // Generates the trajectory of the robot. Called only once in initialization of simulation
 void MainWindow::GenTraj(){
     // 8 curve
-    int nb_step=6500;
+    int nb_step=6400;
 
     par->theta = new double[nb_step];
     par->speedx = new double[nb_step];
@@ -92,7 +88,7 @@ void MainWindow::GenTraj(){
         par->theta[i] = thetav[i];
         par->speedx[i] = (xv[i]-xv[i-1]);
         par->speedy[i] = (yv[i]-yv[i-1]);
-        //par->speed[i] = sqrt(pow(par->speedx[i],2)+pow(par->speedy[i],2));
+        par->speed[i] = sqrt(pow(par->speedx[i],2)+pow(par->speedy[i],2));
     }
 }
 
@@ -106,7 +102,7 @@ void MainWindow::RobotTraj(){
 
 // Launch a simulation given the method, creates a log file and an info window at the end
 void MainWindow::Simu(int method){
-    par->r_pos_found_prev[0]=par->r_pos_found_prev[1]=0;
+    //par->r_pos_found_prev[0]=par->r_pos_found_prev[1]=0;
     first_simu = true;
     double errgomne=0;
     int cpt=0,cpt2=0;
@@ -153,12 +149,12 @@ void MainWindow::Simu(int method){
     int gomnecpt=0;
     tsimu.start();
     step=ui->step_SpinBox->value();
-    for(double i=0;i<6500;i=i+step) cpt2++;
+    for(double i=0;i<6400;i=i+step) cpt2++;
     par->ratio_area.clear();
     par->areain=0;
     par->areap=0;
     par->step = step;
-    for(double i=0;i<6500;i=i+step){
+    for(double i=0;i<6400;i=i+step){
         //cout<<"entry box :"<<par->box.back()<<endl;
         QElapsedTimer tcur;
         QString vtcur = "";
@@ -186,16 +182,16 @@ void MainWindow::Simu(int method){
         myfile << vtcur.toUtf8().constData();myfile << "\n";
         if(ui->StopSimu->isDown())  break;
         cpt++;
-        int ip;
-        if (i!=0){
-            double spx = (xv[int(i)]-xv[ip]);
-            double spy = (yv[int(i)]-yv[ip]);
-            double dt = 0.02;
-//            par->speed[int(i)] = sqrt(pow(spx,2)+pow(spy,2))/((i-ip)*dt);
-            par->speed[int(i)] = ((i-ip)*dt);
-            //cout << par->speed[int(i)] << endl;
-        }
-        ip = i;
+//        int ip;
+//        if (i!=0){
+//            double spx = (xv[int(i)]-xv[ip]);
+//            double spy = (yv[int(i)]-yv[ip]);
+//            double dt = 0.02;
+////            par->speed[int(i)] = sqrt(pow(spx,2)+pow(spy,2))/((i-ip)*dt);
+//            par->speed[int(i)] = ((i-ip)*dt);
+//            //cout << par->speed[int(i)] << endl;
+//        }
+//        ip = i;
 
     }
     double errpercoutliergomne = double(errgomne)/double(cpt);
@@ -368,11 +364,14 @@ void MainWindow::Pair(){
         QMessageBox::warning(this,"Warning",
         "To run properly please choose a value of step<200.\nRunning with step=50 for accurate results");
         ui->step_SpinBox->setValue((50));
+        step=50;
     }
     QElapsedTimer tpair;
     tpair.start();
     RobotTraj();
     Init();
+    par->maxspeed = (pow(xv[0]-xv[step+1],2)+pow(yv[0]-yv[step+1],2))/(step+1);
+    cout<<"maxspeed= "<<par->maxspeed<<endl;
 
     par->nb_beacon = ui->BeaconSpinBox->value();
 
@@ -512,7 +511,7 @@ void MainWindow::repaint(){
 
     RobotTraj();
     uint cpt=0;
-    for(double i=0;i<6500-111;i=i+10){
+    for(double i=0;i<6400-111;i=i+10){
         R->DrawLine(xv[i],yv[i],xv[i+10],yv[i+10],QPen(Qt::darkGreen));
         cpt++;
     }
@@ -655,7 +654,7 @@ void MainWindow::on_ButtonGOMNE_SLAM_clicked()
 }
 void MainWindow::on_ButtonPair_clicked()
 {
-    Simu(5);
+    drawarrow=0;Simu(5);
 }
 
 // Create a delay to give the GUI time to plot results
