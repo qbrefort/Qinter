@@ -4,8 +4,9 @@
 #include <fstream>
 
 #include <QElapsedTimer>
-vector<double> u,xv,yv,zv,vv,thetav,xc,yc,errpos;
+vector<double> u,xv,yv,zv,vv,thetav,xc,yc,errpos,errpospair;
 double t;
+int inpair=0;
 int timeinfo=1;
 int drawapproxpos=0;
 int drawarrow=0;
@@ -107,12 +108,14 @@ void MainWindow::Simu(int method){
     double errgomne=0;
     int cpt=0,cpt2=0;
     cantlocalize=0;
+    inpair=0;
     nboutlier = 0;
     errpos.clear();
+    errpospair.clear();
     par->box.clear();
     par->box.push_back(IntervalVector(2,Interval(-25,25)));
     ui->checkBox->setChecked(false);
-    if(method!=5){
+    if(method!=7){
         for(int i=0;i<ui->BeaconSpinBox->value();i++){
             par->x[i]= 1*(25 - rand() % 50);
             par->y[i]= 1*(25 - rand() % 50);
@@ -131,12 +134,17 @@ void MainWindow::Simu(int method){
             par->outliers[i]=0;
         }
         par->outliers[0]=1;
-        par->outliers[1]=-1;
-        nboutlier=2;
+        //par->outliers[1]=-1;
+        nboutlier=1;
     }
     par->nb_beacon = ui->BeaconSpinBox->value();
     ui->nbOutlierlcd->display(nboutlier);
     //cout<<"\n OUTLIERS: "<<nboutlier<<endl<<endl;
+    if (ui->step_SpinBox->value() >= 200 && method==5){
+        QMessageBox::warning(this,"Warning",
+        "To run properly please choose a value of step<200.\nRunning with step=50 for accurate results");
+        ui->step_SpinBox->setValue(50);
+    }
 
     //Log
     ofstream myfile;
@@ -182,25 +190,14 @@ void MainWindow::Simu(int method){
         myfile << vtcur.toUtf8().constData();myfile << "\n";
         if(ui->StopSimu->isDown())  break;
         cpt++;
-//        int ip;
-//        if (i!=0){
-//            double spx = (xv[int(i)]-xv[ip]);
-//            double spy = (yv[int(i)]-yv[ip]);
-//            double dt = 0.02;
-////            par->speed[int(i)] = sqrt(pow(spx,2)+pow(spy,2))/((i-ip)*dt);
-//            par->speed[int(i)] = ((i-ip)*dt);
-//            //cout << par->speed[int(i)] << endl;
-//        }
-//        ip = i;
-
     }
     double errpercoutliergomne = double(errgomne)/double(cpt);
     myfile.close();
-    QString mess = "Execution time : ";
+    QString mess = "Execution time : \n";
     double exec = tsimu.elapsed();
-    mess.append(QString::number(exec));mess.append(" ms\n");
-    mess.append(vt);mess.append(" ms\n");
-    double cerpos=0;
+    mess.append(QString::number(exec/double(cpt)));mess.append("\n");
+    //mess.append(vt);mess.append(" ms\n");
+    double cerpos=0;double cerposp=0;
     double i=0;
     vector<double> vcerpos;
     while (!errpos.empty()){
@@ -209,6 +206,7 @@ void MainWindow::Simu(int method){
         vcerpos.push_back(cerpos);
         errpos.pop_back();
     }
+
     double mean= cerpos/i;
     cerpos = 0;
     while(!vcerpos.empty()){
@@ -223,13 +221,40 @@ void MainWindow::Simu(int method){
     area/=par->ratio_area.size();
     cantlocalize/=cpt;cantlocalize*=100;
 
-    mess.append(QString::number(cerpos));mess.append("\n");//mess.append(" variance (pixel)");
-    mess.append(QString::number(mean));mess.append("\n");//mess.append(" average error (pixel)\n");
-    mess.append(QString::number(exec));mess.append("\n");
-    mess.append(QString::number(errpercoutliergomne));mess.append("\n");
-    mess.append(QString::number(area));mess.append("\n");
-    mess.append(QString::number(cantlocalize));mess.append("\n");
-    QMessageBox::information(this,"End of Simulation",mess);
+    double iii=0;
+    vector<double> vcerposp;
+    while (!errpospair.empty()){
+        cerposp+=errpospair.back();
+        iii++;
+        vcerposp.push_back(cerposp);
+        errpospair.pop_back();
+    }
+    double meanp= cerposp/iii;
+    cerposp = 0;
+    while(!vcerposp.empty()){
+        cerposp+=pow(vcerposp.back()-meanp,2);
+        vcerposp.pop_back();
+    }
+    cerposp/=iii;
+    double pinpair = double(inpair/iii*100);
+
+    if(method==5){
+        mess.append(QString::number(cerposp));mess.append("\n");//mess.append(" variance (pixel)");
+        mess.append(QString::number(meanp));mess.append("\n");//mess.append(" average error (pixel)\n");
+        mess.append(QString::number(pinpair));mess.append("\n");
+        QMessageBox::information(this,"End of Simulation",mess);
+    }
+    else{
+        mess.append(QString::number(cerpos));mess.append("\n");//mess.append(" variance (pixel)");
+        mess.append(QString::number(mean));mess.append("\n");//mess.append(" average error (pixel)\n");
+        mess.append(QString::number(exec));mess.append("\n");
+        mess.append(QString::number(errpercoutliergomne));mess.append("\n");
+        mess.append(QString::number(area));mess.append("\n");
+        mess.append(QString::number(cantlocalize));mess.append("\n");
+        QMessageBox::information(this,"End of Simulation",mess);
+    }
+    vcerpos.clear();
+    vcerposp.clear();
 }
 
 void MainWindow::SLAM(int step){
@@ -322,7 +347,7 @@ void MainWindow::GOMNE_fixed_q(){
     par->isinside=0;
 
     par->nb_beacon = ui->BeaconSpinBox->value();
-    cout<<"q"<<par->q<<endl;
+    //cout<<"q"<<par->q<<endl;
     ui->EpsilonSpinBox->setValue(1);
     for (uint i=0;i<100;i++){
        par->err[i] = 0.2;
@@ -339,7 +364,7 @@ void MainWindow::GOMNE_fixed_q(){
             par->q--;
             ui->InterSpinBox->setValue(par->q);
             Sivia sivia(*R,par);
-            cout<<"q--"<<endl;
+            //cout<<"q--"<<endl;
         }
         if(par->in_perhaps==1){
             par->epsilon_sivia/=2;
@@ -360,14 +385,6 @@ void MainWindow::GOMNE_fixed_q(){
 
 
 void MainWindow::Pair(){
-    if (ui->step_SpinBox->value() >= 200){
-        QMessageBox::warning(this,"Warning",
-        "To run properly please choose a value of step<200.\nRunning with step=50 for accurate results");
-        ui->step_SpinBox->setValue(50);
-        Simu(5);
-    }
-    QElapsedTimer tpair;
-    tpair.start();
     RobotTraj();
     Init();
     par->maxspeed = sqrt(pow(xv[1]-xv[step+10],2)+pow(yv[1]-yv[step+10],2));
@@ -386,13 +403,12 @@ void MainWindow::Pair(){
     Sivia(*R,par);
     par->pairs = 0;
     //cout<<"Imaxtab:"<<Imax<<"\n"<<endl;
-    repaint();
-
-    if (timeinfo){
-        QString mess = "Execution time : ";
-        mess.append(QString::number(tpair.elapsed()));mess.append(" ms");
-        QMessageBox::information(this,"Info",mess);
+    cout<<par->robot_position[0]<<";"<<par->robot_position[1]<<"|["<<par->lbx<<";"<<par->ubx<<"]["<<par->lby<<";"<<par->uby<<"]"<<endl;
+    if(par->robot_position[0]>=par->lbx && par->robot_position[0]<=par->ubx && par->robot_position[1]>=par->lby && par->robot_position[1]<=par->uby){
+        inpair++;
     }
+
+    repaint();
 }
 
 // Call simulation 'Soft Constraints'
@@ -522,6 +538,11 @@ void MainWindow::repaint(){
     if (isnan(errdist)==0){
         errpos.push_back(errdist);
     }
+    double errdistp = sqrt(pow(par->r_pos_found_prev[0]-par->robot_position[0],2)+pow(par->r_pos_found_prev[1]-par->robot_position[1],2));
+    if (isnan(errdistp)==0){
+        errpospair.push_back(errdistp);
+    }
+
     else    cantlocalize++;
     ui->ratio_area_lcd->display(par->areain/(par->areain+par->areap)*100);
     par->ratio_area.push_back(par->areain/(par->areap+par->areain)*100);

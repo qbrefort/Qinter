@@ -330,7 +330,7 @@ void Sivia::Sivia_Pair(struct sivia_struct *my_struct){
                 Imax = tab_imax[i];
             }
         }
-        cout<<indmax<<";"<<Imax;
+        //cout<<indmax<<";"<<Imax;
         int indmaxy;
         Imaxy = -20;
         for(int i=0;i<2*nc;i++){
@@ -348,10 +348,17 @@ void Sivia::Sivia_Pair(struct sivia_struct *my_struct){
             {uby_found = my_taby->value[i];}
         }
 
+
+
         rxmin = my_struct->r_pos_found_prev[0] + my_tabx->value[indmax];
         rxmax = my_struct->r_pos_found_prev[0] + ubx_found;
         rymin = my_struct->r_pos_found_prev[1] + my_taby->value[indmaxy];
         rymax = my_struct->r_pos_found_prev[1] + uby_found;
+
+        my_struct->lbx = rxmin;
+        my_struct->ubx = rxmax;
+        my_struct->lby = rymin;
+        my_struct->uby = rymax;
 
         my_struct->r_pos_found_prev[0] += ( my_tabx->value[indmax] + ubx_found)/2;
         my_struct->r_pos_found_prev[1] += ( my_taby->value[indmaxy] + uby_found )/2;

@@ -28,6 +28,7 @@ struct sivia_struct{
     double *speedy;
     double *speed;
     double maxspeed;
+    double ubx,lbx,uby,lby;
     int comb1,comb2;
     int pairs;
     int isinside;
