@@ -165,7 +165,7 @@ void Sivia::Sivia_Pair(struct sivia_struct *my_struct){
 
             double speedi = my_struct->maxspeed;
 
-            double eps_vdt = speedi*my_struct->step;
+            double eps_vdt = speedi;
             double eps0 = my_struct->epsilon_sivia;
 
             double v_tilde_i = pow(d_tilde_i,2) + pow(Delta_i,2) - pow(x0-sx_i,2) - pow(y0-sy_i,2) - 0.5*pow(eps_vdt+eps0,2);
