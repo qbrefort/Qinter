@@ -136,7 +136,7 @@ void MainWindow::Simu(int method){
     }
     par->nb_beacon = ui->BeaconSpinBox->value();
     ui->nbOutlierlcd->display(nboutlier);
-    cout<<"\n OUTLIERS: "<<nboutlier<<endl<<endl;
+    //cout<<"\n OUTLIERS: "<<nboutlier<<endl<<endl;
 
     //Log
     ofstream myfile;
@@ -149,12 +149,12 @@ void MainWindow::Simu(int method){
     int gomnecpt=0;
     tsimu.start();
     step=ui->step_SpinBox->value();
-    for(double i=0;i<6400;i=i+step) cpt2++;
+    for(double i=0;i<6400/4;i=i+step) cpt2++;
     par->ratio_area.clear();
     par->areain=0;
     par->areap=0;
     par->step = step;
-    for(double i=0;i<6400;i=i+step){
+    for(double i=0;i<6400/4;i=i+step){
         //cout<<"entry box :"<<par->box.back()<<endl;
         QElapsedTimer tcur;
         QString vtcur = "";
@@ -360,20 +360,19 @@ void MainWindow::GOMNE_fixed_q(){
 
 
 void MainWindow::Pair(){
-    if (ui->step_SpinBox->value() >= 200){
+    if (ui->step_SpinBox->value() >= 10){
         QMessageBox::warning(this,"Warning",
-        "To run properly please choose a value of step<200.\nRunning with step=50 for accurate results");
-        ui->step_SpinBox->setValue((50));
-        step=50;
+        "To run properly please choose a value of step<10.\nRunning with step=5 for accurate results");
+        step=5;
+        ui->step_SpinBox->setValue(5);
+        Simu(5);
     }
     QElapsedTimer tpair;
     tpair.start();
     RobotTraj();
     Init();
-    par->maxspeed = (pow(xv[0]-xv[step+1],2)+pow(yv[0]-yv[step+1],2))/(step+1);
-    cout<<"maxspeed= "<<par->maxspeed<<endl;
-
-    par->nb_beacon = ui->BeaconSpinBox->value();
+    par->maxspeed = sqrt(pow(xv[1]-xv[step+10],2)+pow(yv[1]-yv[step+10],2));
+    //cout<<"maxspeed= "<<par->maxspeed<<endl;
 
     for (uint i=0;i<100;i++){
        par->err[i] = 0.2;
@@ -387,7 +386,6 @@ void MainWindow::Pair(){
     par->pairs = 1;
     Sivia(*R,par);
     par->pairs = 0;
-    cout<<endl;
     //cout<<"Imaxtab:"<<Imax<<"\n"<<endl;
     repaint();
 
@@ -396,7 +394,6 @@ void MainWindow::Pair(){
         mess.append(QString::number(tpair.elapsed()));mess.append(" ms");
         QMessageBox::information(this,"Info",mess);
     }
-
 }
 
 // Call simulation 'Soft Constraints'

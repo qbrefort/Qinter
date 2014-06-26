@@ -353,17 +353,15 @@ void Sivia::Sivia_Pair(struct sivia_struct *my_struct){
         rymin = my_struct->r_pos_found_prev[1] + my_taby->value[indmaxy];
         rymax = my_struct->r_pos_found_prev[1] + uby_found;
 
-        my_struct->r_pos_found_prev[0] += (ubx_found + my_tabx->value[indmax])/2;
-        my_struct->r_pos_found_prev[1] += (uby_found + my_taby->value[indmaxy])/2;
+        my_struct->r_pos_found_prev[0] += ( my_tabx->value[indmax] + ubx_found)/2;
+        my_struct->r_pos_found_prev[1] += ( my_taby->value[indmaxy] + uby_found )/2;
 
 //        rxmin = my_struct->r_pos_found_prev[0] - (ubx_found + my_tabx->value[indmax])/2;
 //        rxmax = my_struct->r_pos_found_prev[0] + (ubx_found + my_tabx->value[indmax])/2;
 //        rymin = my_struct->r_pos_found_prev[1] - (uby_found + my_taby->value[indmaxy])/2;
 //        rymax = my_struct->r_pos_found_prev[1] + (uby_found + my_taby->value[indmaxy])/2;
 
-
-
-        cout<<"\nMoved of:["<<my_tabx->value[indmax]<<";"<<ubx_found<<"] || ["<<my_taby->value[indmaxy]<<";"<<uby_found<<"]"<<endl<<endl;
+//        cout<<"\nMoved of:["<<my_tabx->value[indmax]<<";"<<ubx_found<<"] || ["<<my_taby->value[indmaxy]<<";"<<uby_found<<"]"<<endl<<endl;
 
 
 
