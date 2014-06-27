@@ -42,7 +42,9 @@ MainWindow::MainWindow(QWidget *parent) :  QMainWindow(parent), ui(new Ui::MainW
     par->box.resize(1);
     par->beacon_interval = ui->BeaconPosSpinBox->value();
     par->maxspeed=0.03;
+    ui->probsensorisfalseSpinBox->setValue(10);
     probsensorfalse = ui->probsensorisfalseSpinBox->value();
+
 }
 
 MainWindow::~MainWindow() {
@@ -115,7 +117,7 @@ void MainWindow::Simu(int method){
     par->box.clear();
     par->box.push_back(IntervalVector(2,Interval(-25,25)));
     ui->checkBox->setChecked(false);
-    if(method!=7){
+    if(method!=5){
         for(int i=0;i<ui->BeaconSpinBox->value();i++){
             par->x[i]= 1*(25 - rand() % 50);
             par->y[i]= 1*(25 - rand() % 50);
@@ -133,9 +135,9 @@ void MainWindow::Simu(int method){
             par->y[i]= 1*(25 - rand() % 50);
             par->outliers[i]=0;
         }
-        par->outliers[0]=1;
+        par->outliers[0]=0;
         //par->outliers[1]=-1;
-        nboutlier=1;
+        nboutlier=0;
     }
     par->nb_beacon = ui->BeaconSpinBox->value();
     ui->nbOutlierlcd->display(nboutlier);

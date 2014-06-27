@@ -252,7 +252,7 @@ void Sivia::Sivia_Pair(struct sivia_struct *my_struct){
 
         std::vector<double> sortedvector (my_tabx->value,my_tabx->value+2*nc);
 
-        // using default comparison (operator <):
+        // using default commy_structison (operator <):
         std::sort (sortedvector.begin(), sortedvector.begin()+2*nc);
 
 
@@ -370,11 +370,14 @@ void Sivia::Sivia_Pair(struct sivia_struct *my_struct){
 
 //        cout<<"\nMoved of:["<<my_tabx->value[indmax]<<";"<<ubx_found<<"] || ["<<my_taby->value[indmaxy]<<";"<<uby_found<<"]"<<endl<<endl;
 
-
+    if(my_struct->robot_position[0]>=my_struct->lbx && my_struct->robot_position[0]<=my_struct->ubx && my_struct->robot_position[1]>=my_struct->lby && my_struct->robot_position[1]<=my_struct->uby)
+        R.DrawEllipse(my_struct->r_pos_found_prev[0],my_struct->r_pos_found_prev[1],0.1,QPen(Qt::blue),QBrush(Qt::blue,Qt::Dense4Pattern));
+    else
+        R.DrawEllipse(my_struct->r_pos_found_prev[0],my_struct->r_pos_found_prev[1],0.1,QPen(Qt::red),QBrush(Qt::red,Qt::Dense4Pattern));
 
     for(int i=0;i<n;i++)
         R.DrawEllipse(x[i],y[i],re,QPen(Qt::black),QBrush(Qt::NoBrush));
-    R.DrawEllipse(my_struct->r_pos_found_prev[0],my_struct->r_pos_found_prev[1],0.1,QPen(Qt::red),QBrush(Qt::Dense4Pattern));
+
     R.DrawBox(rxmin,rxmax,rymin,rymax,QPen(Qt::black),QBrush(Qt::NoBrush));
     sortedvector.clear();
     sortedvectory.clear();
