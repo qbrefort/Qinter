@@ -401,11 +401,24 @@ void MainWindow::Pair(){
     ui->ErrSpinBox_4->setValue(par->err[3]);
     ui->ErrSpinBox_5->setValue(par->err[4]);
 
-    par->pairs = 1;
-    Sivia(*R,par);
-    par->pairs = 0;
+    if(par->iteration==0){
+        par->pairs = 0;
+        Sivia(*R,par);
+        par->r_pos_found_prev[0] = par->robot_position_found[0];
+        par->r_pos_found_prev[1] = par->robot_position_found[1];
+        par->pairs = 1;
+        Sivia(*R,par);
+        par->pairs = 0;
+    }
+    else{
+        par->pairs = 1;
+        Sivia(*R,par);
+        par->pairs = 0;
+    }
+
+
     //cout<<"Imaxtab:"<<Imax<<"\n"<<endl;
-    cout<<par->robot_position[0]<<";"<<par->robot_position[1]<<"|["<<par->lbx<<";"<<par->ubx<<"]["<<par->lby<<";"<<par->uby<<"]"<<endl;
+    cout<<"["<<par->r_pos_found_prev[0]<<";"<<par->r_pos_found_prev[1]<<"]|["<<par->robot_position[0]<<";"<<par->robot_position[1]<<"]|["<<par->lbx<<";"<<par->ubx<<"]["<<par->lby<<";"<<par->uby<<"]"<<endl;
     if(par->robot_position[0]>=par->lbx && par->robot_position[0]<=par->ubx && par->robot_position[1]>=par->lby && par->robot_position[1]<=par->uby){
         inpair++;
     }

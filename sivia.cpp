@@ -145,17 +145,17 @@ void Sivia::Sivia_Pair(struct sivia_struct *my_struct){
             double Delta_i = my_struct->beacon_interval*r[ci]/100;
             double Delta_j = my_struct->beacon_interval*r[cj]/100;
             double x0,y0;
-            if(my_struct->iteration == 0){
-                x0=y0=0;
-                my_struct->r_pos_found_prev[0]=0;
-                my_struct->r_pos_found_prev[1]=0;
-            }
-            else{
+//            if(my_struct->iteration == 0){
+//                x0=y0=0;
+//                my_struct->r_pos_found_prev[0]=0;
+//                my_struct->r_pos_found_prev[1]=0;
+//            }
+//            else{
 //                x0=my_struct->robot_position_found[0];
 //                y0=my_struct->robot_position_found[1];
-                x0=my_struct->r_pos_found_prev[0];
-                y0=my_struct->r_pos_found_prev[1];
-            }
+            x0=my_struct->r_pos_found_prev[0];
+            y0=my_struct->r_pos_found_prev[1];
+
 
             double sx_i = x[ci];
             double sy_i = y[ci];
