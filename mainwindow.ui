@@ -472,14 +472,14 @@
      <item>
       <widget class="QPushButton" name="ButtonGOMNE_SLAM">
        <property name="text">
-        <string>GOMNE + SLAM</string>
+        <string>GOMNE + TRAJ PRED</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="ButtonPair">
        <property name="text">
-        <string>TEST</string>
+        <string>Pair</string>
        </property>
       </widget>
      </item>

@@ -117,7 +117,7 @@ void MainWindow::Simu(int method){
     par->box.clear();
     par->box.push_back(IntervalVector(2,Interval(-25,25)));
     ui->checkBox->setChecked(false);
-    if(method!=5){
+    if(method!=10){
         for(int i=0;i<ui->BeaconSpinBox->value();i++){
             par->x[i]= 1*(25 - rand() % 50);
             par->y[i]= 1*(25 - rand() % 50);
@@ -144,8 +144,8 @@ void MainWindow::Simu(int method){
     //cout<<"\n OUTLIERS: "<<nboutlier<<endl<<endl;
     if (ui->step_SpinBox->value() >= 200 && method==5){
         QMessageBox::warning(this,"Warning",
-        "To run properly please choose a value of step<200.\nRunning with step=50 for accurate results");
-        ui->step_SpinBox->setValue(50);
+        "To run properly please choose a value of step<200.\nRunning with step=70 for accurate results (speed of the robot=5km/h)");
+        ui->step_SpinBox->setValue(70);
     }
 
     //Log
@@ -184,6 +184,8 @@ void MainWindow::Simu(int method){
         if(method==4) GOMNE_fixed_q();
         if(method==5) Pair();
         errgomne += fabs(double(par->q-(double(par->nb_beacon) -  double(nboutlier))) / (double(par->nb_beacon) -  double(nboutlier))*100);
+        // this error is on the test:
+        //if ((nbeacon-Qinter)!=nboutlier)    errgomne++;
         ui->TSlider->setValue(t);
         Zoom(step);
         delay();
@@ -402,28 +404,24 @@ void MainWindow::Pair(){
     ui->ErrSpinBox_5->setValue(par->err[4]);
 
     if(par->iteration==0){
-        par->pairs = 0;
-        Sivia(*R,par);
+        on_ButtonGOMNE_clicked();
         par->r_pos_found_prev[0] = par->robot_position_found[0];
         par->r_pos_found_prev[1] = par->robot_position_found[1];
-        par->pairs = 1;
-        Sivia(*R,par);
-        par->pairs = 0;
+
     }
     else{
         par->pairs = 1;
         Sivia(*R,par);
-        par->pairs = 0;
+
     }
 
-
     //cout<<"Imaxtab:"<<Imax<<"\n"<<endl;
-    cout<<"["<<par->r_pos_found_prev[0]<<";"<<par->r_pos_found_prev[1]<<"]|["<<par->robot_position[0]<<";"<<par->robot_position[1]<<"]|["<<par->lbx<<";"<<par->ubx<<"]["<<par->lby<<";"<<par->uby<<"]"<<endl;
+    //cout<<"["<<par->r_pos_found_prev[0]<<";"<<par->r_pos_found_prev[1]<<"]|["<<par->robot_position[0]<<";"<<par->robot_position[1]<<"]|["<<par->lbx<<";"<<par->ubx<<"]["<<par->lby<<";"<<par->uby<<"]"<<endl;
     if(par->robot_position[0]>=par->lbx && par->robot_position[0]<=par->ubx && par->robot_position[1]>=par->lby && par->robot_position[1]<=par->uby){
         inpair++;
     }
-
     repaint();
+    par->pairs = 0;
 }
 
 // Call simulation 'Soft Constraints'
@@ -548,7 +546,7 @@ void MainWindow::repaint(){
     double xins=par->robot_position_found[0];
     double yins=par->robot_position_found[1];
     double zins=par->robot_position_found[2];
-    if (drawapproxpos==1)   R->DrawRobot2(xins,yins,par->robot_position[3]);
+    if (drawapproxpos==1 && par->pairs==0)   R->DrawRobot2(xins,yins,par->robot_position[3]);
     double errdist = sqrt(pow(xins-par->robot_position[0],2)+pow(yins-par->robot_position[1],2));
     if (isnan(errdist)==0){
         errpos.push_back(errdist);
